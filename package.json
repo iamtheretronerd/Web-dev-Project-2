@@ -1,0 +1,41 @@
+{
+  "name": "web-dev-project-2",
+  "version": "1.0.0",
+  "main": "backend.js",
+  "type": "module",
+  "scripts": {
+    "start": "node backend.js",
+    "dev": "npx nodemon backend.js",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamtheretronerd/Web-dev-Project-2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iamtheretronerd/Web-dev-Project-2/issues"
+  },
+  "homepage": "https://github.com/iamtheretronerd/Web-dev-Project-2#readme",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^9.37.0",
+    "eslint": "^9.37.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jest": "^29.0.1",
+    "eslint-plugin-prettier": "^5.5.4",
+    "globals": "^16.4.0",
+    "jest": "^30.2.0",
+    "prettier": "^3.6.2"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "mongodb": "^6.20.0",
+    "nodemon": "^3.1.10"
+  }
+}
