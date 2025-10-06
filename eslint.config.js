@@ -47,7 +47,7 @@ export default [
       "prettier/prettier": [
         "error",
         {
-          endOfLine: "lf",
+          endOfLine: "auto",
         },
       ],
     },
