@@ -3,7 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 //routes
-import mainRoutes from "./routes/mainRoutes.js";
+import mainRoute from "./routes/mainRoute.js";
+import authRoute from "./routes/authRoute.js";
+import postsRoute from "./routes/postsRoute.js";
 
 // Load environment variables
 dotenv.config();
@@ -23,7 +25,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("frontend"));
 
 // API Routes
-app.use("/api/", mainRoutes);
+app.use("/api/test", mainRoute);
+app.use("/api/auth", authRoute);
+app.use("/api/posts", postsRoute);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -43,7 +47,7 @@ app.use(/^\/api\/.*$/, (req, res) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, res) => {
   console.error("Error:", err.stack);
   res.status(err.status || 500).json({
     error: err.message || "Internal Server Error",

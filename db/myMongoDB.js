@@ -125,6 +125,24 @@ function MyMongoDB({
     }
   };
 
+  // Find a single document
+  me.findOne = async (filter) => {
+    const { client, collection } = await connect();
+
+    try {
+      const document = await collection.findOne(filter);
+      console.log("Found document:", document ? "Yes" : "No");
+      return document;
+    } catch (err) {
+      console.error("Error finding document:", err);
+      throw err;
+    } finally {
+      await client.close();
+    }
+  };
+
+  me.connect = connect;
+
   return me;
 }
 
