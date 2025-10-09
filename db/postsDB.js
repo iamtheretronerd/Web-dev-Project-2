@@ -65,4 +65,17 @@ export const searchPosts = async (searchTerm) => {
   }
 };
 
+// Get a single post by ID
+export const getPostById = async (postId) => {
+  const { client, collection } = await postsDB.connect();
+
+  try {
+    const { ObjectId } = await import("mongodb");
+    const post = await collection.findOne({ _id: new ObjectId(postId) });
+    return post;
+  } finally {
+    await client.close();
+  }
+};
+
 export default postsDB;

@@ -4,6 +4,7 @@ import {
   getPostsPaginated,
   getUserPosts,
   searchPosts,
+  getPostById,
 } from "../db/postsDB.js";
 
 const router = express.Router();
@@ -113,6 +114,41 @@ router.get("/search", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to search posts",
+      error: error.message,
+    });
+  }
+});
+
+// Get single post - GET /api/posts/single?id=...
+router.get("/single", async (req, res) => {
+  try {
+    const { id } = req.query;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Post ID is required",
+      });
+    }
+
+    const post = await getPostById(id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      post,
+    });
+  } catch (error) {
+    console.error("Get single post error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch post",
       error: error.message,
     });
   }

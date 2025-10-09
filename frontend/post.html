@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post - 9th Seat</title>
+    <link rel="stylesheet" href="css/post.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header with back button -->
+      <div class="header">
+        <button id="backBtn" class="btn-back">← Back to Dashboard</button>
+        <div class="header-right">
+          <img id="userAvatar" class="user-avatar" src="" alt="Profile" />
+          <span id="userNameDisplay"></span>
+          <button id="logoutBtn" class="btn-logout">Logout</button>
+        </div>
+      </div>
+
+      <!-- Post Content -->
+      <div class="post-container">
+        <div id="loadingMessage" class="loading">Loading post...</div>
+
+        <div id="postContent" style="display: none">
+          <h1 id="postTitle" class="post-title"></h1>
+
+          <div class="post-meta">
+            <span class="post-author">by <span id="postAuthor"></span></span>
+            <span class="post-date" id="postDate"></span>
+          </div>
+
+          <div class="post-description" id="postDescription"></div>
+
+          <div class="post-actions">
+            <button id="upvoteBtn" class="btn-upvote">
+              <span class="vote-icon">▲</span>
+              <span id="voteCount">0</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none">
+          Failed to load post. Please try again.
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="js/post.js"></script>
+  </body>
+</html>

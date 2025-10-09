@@ -78,7 +78,7 @@ function setupEventListeners() {
   // Load more
   document.getElementById("loadMoreBtn").addEventListener("click", () => {
     currentPage++;
-    loadPosts(true); // append mode
+    loadPosts(true);
   });
 }
 
@@ -182,8 +182,7 @@ function displayPosts(posts, append = false) {
         `;
 
     postCard.addEventListener("click", () => {
-      // Will implement later
-      console.log("Post clicked:", post._id);
+      window.location.href = `/post.html?id=${post._id}`;
     });
 
     grid.appendChild(postCard);
