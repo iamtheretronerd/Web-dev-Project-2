@@ -16,6 +16,13 @@ window.addEventListener("DOMContentLoaded", () => {
   currentUser = JSON.parse(userStr);
   document.getElementById("userNameDisplay").textContent = currentUser.name;
 
+  currentUser = JSON.parse(userStr);
+  document.getElementById("userNameDisplay").textContent = currentUser.name;
+
+  document.getElementById("userAvatar").src =
+    currentUser.profileImage ||
+    `https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=${encodeURIComponent(currentUser.name)}`;
+
   // Initialize event listeners
   setupEventListeners();
 
@@ -167,9 +174,9 @@ function displayPosts(posts, append = false) {
     const postDate = new Date(post.date).toLocaleDateString();
 
     postCard.innerHTML = `
-            <div class="post-title">${escapeHtml(post.title)}</div>
+            <div class="post-title">${post.title}</div>
             <div class="post-meta">
-                <span class="post-author">by ${escapeHtml(post.userEmail.split("@")[0])}</span>
+                <span class="post-author">by ${post.userEmail.split("@")[0]}</span>
                 <span class="post-date">${postDate}</span>
             </div>
         `;
@@ -221,16 +228,4 @@ function clearSearch() {
   isSearching = false;
   currentPage = 1;
   loadPosts();
-}
-
-// Helper function to escape HTML
-function escapeHtml(text) {
-  const map = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  };
-  return text.replace(/[&<>"']/g, (m) => map[m]);
 }
