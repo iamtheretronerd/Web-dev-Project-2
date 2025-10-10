@@ -7,9 +7,9 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "/dashboard.html";
   }
 
-  const loginBtn = document.getElementById("loginBtn");
-  if (loginBtn) {
-    loginBtn.addEventListener("click", () => {
+  const getStartedBtn = document.getElementById("getStartedBtn");
+  if (getStartedBtn) {
+    getStartedBtn.addEventListener("click", () => {
       window.location.href = "/login.html";
     });
   }
