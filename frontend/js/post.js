@@ -22,9 +22,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("userNameDisplay").textContent = currentUser.name;
   document.getElementById("userAvatar").src =
     currentUser.profileImage ||
-    `https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=${encodeURIComponent(
-      currentUser.name
-    )}`;
+    `https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=${encodeURIComponent(currentUser.name)}`;
 
   const urlParams = new URLSearchParams(window.location.search);
   postId = urlParams.get("id");
@@ -63,14 +61,11 @@ function setupEventListeners() {
     window.location.href = "/";
   });
 
-  document
-    .getElementById("upvoteBtn")
-    .addEventListener("click", () => {
-      // Trigger upvoting of the current post
-      upvoteCurrentPost();
-    });
+  document.getElementById("upvoteBtn").addEventListener("click", () => {
+    // Trigger upvoting of the current post
+    upvoteCurrentPost();
+  });
 }
-
 // Load the post from server
 async function loadPost() {
   try {
@@ -115,6 +110,15 @@ function displayPost() {
   // Set vote count
   document.getElementById("voteCount").textContent = currentPost.votes || 0;
 
+  // Toggle upvoted state on the post's upvote button based on whether
+  // the current user's email is present in the post's voters array
+  const upvoteBtn = document.getElementById("upvoteBtn");
+  if (currentPost.voters && currentPost.voters.includes(currentUser.email)) {
+    upvoteBtn.classList.add("upvoted");
+  } else {
+    upvoteBtn.classList.remove("upvoted");
+  }
+
   // Render comments list whenever the post is displayed
   displayComments();
 }
@@ -124,10 +128,9 @@ function displayComments() {
   if (!commentsList) return;
   // Clear existing comments
   commentsList.innerHTML = "";
-  const comments =
-    currentPost && Array.isArray(currentPost.comments)
-      ? currentPost.comments
-      : [];
+  const comments = (currentPost && Array.isArray(currentPost.comments))
+    ? currentPost.comments
+    : [];
   if (comments.length === 0) {
     const li = document.createElement("li");
     li.className = "no-comments";
@@ -142,9 +145,11 @@ function displayComments() {
     // Upvote button for the comment
     const upvoteBtn = document.createElement("button");
     upvoteBtn.className = "comment-upvote-btn";
-    upvoteBtn.innerHTML = `<span class="comment-vote-icon">▲</span> <span class="comment-vote-count">${
-      comment.votes || 0
-    }</span>`;
+    upvoteBtn.innerHTML = `<span class="comment-vote-icon">▲</span> <span class="comment-vote-count">${comment.votes || 0}</span>`;
+    // Apply upvoted class if current user already voted
+    if (comment.voters && comment.voters.includes(currentUser.email)) {
+      upvoteBtn.classList.add("upvoted");
+    }
     upvoteBtn.addEventListener("click", () => {
       upvoteComment(comment.commentId);
     });
@@ -157,9 +162,7 @@ function displayComments() {
     // Comment meta (author and date)
     const metaDiv = document.createElement("div");
     metaDiv.className = "comment-meta";
-    const author = comment.userEmail
-      ? comment.userEmail.split("@")[0]
-      : "Anonymous";
+    const author = comment.userEmail ? comment.userEmail.split("@")[0] : "Anonymous";
     const date = new Date(comment.date);
     metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
 
@@ -202,42 +205,42 @@ async function upvoteCurrentPost() {
   try {
     const response = await fetch(`/api/posts/${postId}/upvote`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userEmail: currentUser.email }),
     });
     const data = await response.json();
     if (data.success) {
-      // Update vote count locally and on UI
-      currentPost.votes = (currentPost.votes || 0) + 1;
-      document.getElementById("voteCount").textContent = currentPost.votes;
+      // Reload the post to update vote count and button state
+      await loadPost();
     } else {
-      console.error("Failed to upvote post:", data.message || data.error);
-      alert(data.message || "Failed to upvote post");
+      console.error("Failed to toggle post vote:", data.message || data.error);
+      alert(data.message || "Failed to toggle post vote");
     }
   } catch (error) {
-    console.error("Error upvoting post:", error);
-    alert("An error occurred while upvoting the post. Please try again.");
+    console.error("Error toggling post vote:", error);
+    alert("An error occurred while voting on the post. Please try again.");
   }
 }
 
 // Upvote a specific comment by its commentId
 async function upvoteComment(commentId) {
   try {
-    const response = await fetch(
-      `/api/posts/${postId}/comments/${commentId}/upvote`,
-      { method: "POST" }
-    );
+    const response = await fetch(`/api/posts/${postId}/comments/${commentId}/upvote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userEmail: currentUser.email }),
+    });
     const data = await response.json();
     if (data.success) {
-      // Reload the post to refresh comment vote counts
+      // Refresh the post to update comment vote counts and button states
       await loadPost();
     } else {
-      console.error("Failed to upvote comment:", data.message || data.error);
-      alert(data.message || "Failed to upvote comment");
+      console.error("Failed to toggle comment vote:", data.message || data.error);
+      alert(data.message || "Failed to toggle comment vote");
     }
   } catch (error) {
-    console.error("Error upvoting comment:", error);
-    alert(
-      "An error occurred while upvoting the comment. Please try again."
-    );
+    console.error("Error toggling comment vote:", error);
+    alert("An error occurred while voting on the comment. Please try again.");
   }
 }
 

@@ -159,6 +159,13 @@ body {
   color: white;
 }
 
+/* When the upvote button is disabled because the user has already voted,
+   reduce opacity and cursor to indicate it's inactive */
+.btn-upvote:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .vote-icon {
   font-size: 20px;
 }
@@ -167,18 +174,26 @@ body {
   font-weight: bold;
 }
 
-/* Comments Section */
-.comments-section {
+/* Comments Container */
+.comments-container {
   margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+  background-color: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
 }
-.comments-form {
+
+/* Comment form */
+.comment-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
   margin-bottom: 20px;
 }
+
 .comment-textarea {
   resize: vertical;
   min-height: 80px;
@@ -187,23 +202,34 @@ body {
   border: 1px solid #ccc;
   border-radius: 5px;
 }
+
 .btn-comment {
   align-self: flex-start;
   background-color: #28a745;
   color: white;
   border: none;
   padding: 8px 16px;
-  font-size: 16px;
+  font-size: 14px;
   border-radius: 5px;
   cursor: pointer;
 }
+
 .btn-comment:hover {
   background-color: #218838;
 }
+
 .comments-list {
   list-style: none;
   padding-left: 0;
 }
+
+/* When there are no comments, style the placeholder message */
+.no-comments {
+  font-size: 16px;
+  color: #666;
+  padding-top: 10px;
+}
+
 .comment-item {
   display: flex;
   align-items: flex-start;
@@ -211,6 +237,7 @@ body {
   padding: 10px 0;
   border-bottom: 1px solid #eee;
 }
+
 .comment-upvote-btn {
   background-color: transparent;
   border: none;
@@ -221,6 +248,26 @@ body {
   align-items: center;
   gap: 5px;
 }
-.comment-upvote-btn:hover { color: #0056b3; }
-.comment-text { flex: 1; font-size: 16px; color: #333; }
-.comment-meta { font-size: 12px; color: #888; margin-top: 4px; }
+
+.comment-upvote-btn:hover {
+  color: #0056b3;
+}
+
+/* When a user has upvoted a comment, highlight the button to
+   indicate the active state */
+.comment-upvote-btn.upvoted {
+  color: #0056b3;
+  font-weight: bold;
+}
+
+.comment-text {
+  flex: 1;
+  font-size: 16px;
+  color: #333;
+}
+
+.comment-meta {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}

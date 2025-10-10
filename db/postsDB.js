@@ -13,6 +13,7 @@ export const createPost = async (postData) => {
     date: new Date(),
     votes: 0,
     comments: [],
+    voters: [],
   };
   return await postsDB.insertDocument(post);
 };
@@ -71,7 +72,9 @@ export const getPostById = async (postId) => {
   const { client, collection } = await postsDB.connect();
 
   try {
-    // import at top const { ObjectId } = await import("mongodb");
+    // Cast the incoming postId string into an ObjectId.  If the
+    // provided id is invalid, this will throw and get caught by the
+    // calling function.
     const post = await collection.findOne({ _id: new ObjectId(postId) });
     return post;
   } finally {
@@ -79,13 +82,31 @@ export const getPostById = async (postId) => {
   }
 };
 
-// Upvote a post by ID
-export const upvotePost = async postId => {
+// Post voting and commenting helpers
+/**
+ * Increment the vote counter on a post if the given user has not already
+ * voted. This uses the $ne operator to ensure the userEmail is not
+ * already present in the voters array, then uses $inc and $push atomically.
+ *
+ * @param {string} postId The ID of the post being upvoted
+ * @param {string} userEmail The email of the user performing the vote
+ * @returns {object} The result of the updateOne operation
+ */
+export const upvotePost = async (postId, userEmail) => {
   const { client, collection } = await postsDB.connect();
   try {
     const result = await collection.updateOne(
-      { _id: new ObjectId(postId) },
-      { $inc: { votes: 1 } }
+      {
+        _id: new ObjectId(postId),
+        // only match documents where the voters array does not already
+        // contain this user. If the voter is present, modifiedCount will
+        // remain 0 and the route can return an appropriate message.
+        voters: { $ne: userEmail },
+      },
+      {
+        $inc: { votes: 1 },
+        $push: { voters: userEmail },
+      }
     );
     return result;
   } finally {
@@ -93,9 +114,15 @@ export const upvotePost = async postId => {
   }
 };
 
-// Add a comment with its onw commentId, author email, text, timestamp, 
-// and an empty array for replies, use mongoDB $push operator to appet it to the comments aray of post
-
+/**
+ * Append a new comment to the comments array of a post. Each comment
+ * receives its own commentId, author, text, timestamp, vote count and
+ * empty replies array. The $push operator will create the comments
+ * array if it doesn't exist【796652227629499†L102-L106】.
+ *
+ * @param {string} postId The ID of the post to add a comment to
+ * @param {object} commentFields An object with userEmail and text
+ */
 export const addCommentToPost = async (postId, { userEmail, text }) => {
   const { client, collection } = await postsDB.connect();
   try {
@@ -105,6 +132,9 @@ export const addCommentToPost = async (postId, { userEmail, text }) => {
       text,
       date: new Date(),
       votes: 0,
+      // track voters for each comment so that users can only upvote
+      // a comment once and can toggle their vote
+      voters: [],
       replies: [],
     };
     const result = await collection.updateOne(
@@ -117,7 +147,15 @@ export const addCommentToPost = async (postId, { userEmail, text }) => {
   }
 };
 
-// Upvote a comment, uses positional $ operator to increment a nested comment's votes field
+/**
+ * Increment the vote count on a comment embedded in a post. Uses the
+ * positional $ operator to target the specific comment within the
+ * comments array【179960199388456†L1050-L1056】.
+ *
+ * @param {string} postId The ID of the parent post
+ * @param {string} commentId The ID of the comment to upvote
+ * @returns {object} The result of the updateOne operation
+ */
 export const upvoteComment = async (postId, commentId) => {
   const { client, collection } = await postsDB.connect();
   try {
@@ -126,6 +164,92 @@ export const upvoteComment = async (postId, commentId) => {
       { $inc: { "comments.$.votes": 1 } }
     );
     return result;
+  } finally {
+    await client.close();
+  }
+};
+
+/**
+ * Toggle a user's vote on a post. If the user has already voted, the
+ * vote is removed and the vote count is decremented. Otherwise, the
+ * vote is added and the count incremented. Returns an object
+ * indicating whether the post is now upvoted by the user.
+ *
+ * @param {string} postId The post ID
+ * @param {string} userEmail The voter's email
+ */
+export const togglePostVote = async (postId, userEmail) => {
+  const { client, collection } = await postsDB.connect();
+  try {
+    // First attempt to remove the user's vote.  This only matches
+    // documents where the voters array contains the email.
+    let result = await collection.updateOne(
+      { _id: new ObjectId(postId), voters: userEmail },
+      { $inc: { votes: -1 }, $pull: { voters: userEmail } }
+    );
+    if (result.modifiedCount === 1) {
+      return { upvoted: false };
+    }
+    // If no vote was removed, try to add a new vote.  Only matches
+    // documents where the email is not already present.
+    result = await collection.updateOne(
+      { _id: new ObjectId(postId), voters: { $ne: userEmail } },
+      { $inc: { votes: 1 }, $push: { voters: userEmail } }
+    );
+    if (result.modifiedCount === 1) {
+      return { upvoted: true };
+    }
+    // If still no change, the post may not exist.  Return null.
+    return null;
+  } finally {
+    await client.close();
+  }
+};
+
+/**
+ * Toggle a user's vote on a comment nested inside a post. If the
+ * user has already voted on the comment, their vote is removed and
+ * the count decremented; otherwise, their vote is added. Returns
+ * whether the comment is now upvoted by the user.
+ *
+ * @param {string} postId The parent post ID
+ * @param {string} commentId The comment ID
+ * @param {string} userEmail The voter's email
+ */
+export const toggleCommentVote = async (postId, commentId, userEmail) => {
+  const { client, collection } = await postsDB.connect();
+  try {
+    // Attempt to remove the vote if user already voted
+    let result = await collection.updateOne(
+      {
+        _id: new ObjectId(postId),
+        "comments.commentId": new ObjectId(commentId),
+        "comments.voters": userEmail,
+      },
+      {
+        $inc: { "comments.$.votes": -1 },
+        $pull: { "comments.$.voters": userEmail },
+      }
+    );
+    if (result.modifiedCount === 1) {
+      return { upvoted: false };
+    }
+    // Attempt to add the vote if user hasn't already voted
+    result = await collection.updateOne(
+      {
+        _id: new ObjectId(postId),
+        "comments.commentId": new ObjectId(commentId),
+        "comments.voters": { $ne: userEmail },
+      },
+      {
+        $inc: { "comments.$.votes": 1 },
+        $push: { "comments.$.voters": userEmail },
+      }
+    );
+    if (result.modifiedCount === 1) {
+      return { upvoted: true };
+    }
+    return null;
   } finally {
     await client.close();
   }
