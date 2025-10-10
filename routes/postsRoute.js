@@ -5,6 +5,9 @@ import {
   getUserPosts,
   searchPosts,
   getPostById,
+  upvotePost,
+  addCommentToPost,
+  upvoteComment
 } from "../db/postsDB.js";
 
 const router = express.Router();
@@ -151,6 +154,49 @@ router.get("/single", async (req, res) => {
       message: "Failed to fetch post",
       error: error.message,
     });
+  }
+});
+
+// Upvote a post
+router.post("/:id/upvote", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await upvotePost(id);
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "Post not found" });
+    }
+    res.json({ success: true, message: "Post upvoted successfully" }); 
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to upvote post", error: err.message });
+  }
+});
+
+// Add a comment to a post
+router.post("/:id/comments", async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { userEmail, text } = req.body;
+    const result = await addCommentToPost(postId, { userEmail, text });
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "Post not found" });
+    }
+    res.json({ success: true, message: "Comment added successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to add comment", error: err.message });
+  }
+});
+
+// Upvote a comment
+router.post("/:postId/comments/:commentId/upvote", async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+    const result = await upvoteComment(postId, commentId);
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ success: false, message: "Comment not found" });
+    }
+    res.json({ success: true, message: "Comment upvoted successfully" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to upvote comment", error: err.message });
   }
 });
 

@@ -2,6 +2,11 @@ let currentUser = null;
 let currentPost = null;
 let postId = null;
 
+// References to comment-related DOM elements
+let commentForm = null;
+let commentText = null;
+let commentsList = null;
+
 // Check if user is logged in and get post ID
 window.addEventListener("DOMContentLoaded", async () => {
   const userStr = sessionStorage.getItem("user");
@@ -17,7 +22,9 @@ window.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("userNameDisplay").textContent = currentUser.name;
   document.getElementById("userAvatar").src =
     currentUser.profileImage ||
-    `https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=${encodeURIComponent(currentUser.name)}`;
+    `https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=${encodeURIComponent(
+      currentUser.name
+    )}`;
 
   const urlParams = new URLSearchParams(window.location.search);
   postId = urlParams.get("id");
@@ -29,6 +36,16 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   // Initialize event listeners
   setupEventListeners();
+
+  // Capture comment form elements once the DOM has loaded
+  commentForm = document.getElementById("commentForm");
+  commentText = document.getElementById("commentText");
+  commentsList = document.getElementById("commentsList");
+
+  // Bind submit handler for new comments
+  if (commentForm) {
+    commentForm.addEventListener("submit", handleCommentSubmit);
+  }
 
   // Load the post
   await loadPost();
@@ -46,11 +63,14 @@ function setupEventListeners() {
     window.location.href = "/";
   });
 
-  document.getElementById("upvoteBtn").addEventListener("click", () => {
-    // TODO: Implement upvote functionality
-    console.log("Upvote clicked for post:", postId);
-  });
+  document
+    .getElementById("upvoteBtn")
+    .addEventListener("click", () => {
+      // Trigger upvoting of the current post
+      upvoteCurrentPost();
+    });
 }
+
 // Load the post from server
 async function loadPost() {
   try {
@@ -94,6 +114,131 @@ function displayPost() {
 
   // Set vote count
   document.getElementById("voteCount").textContent = currentPost.votes || 0;
+
+  // Render comments list whenever the post is displayed
+  displayComments();
+}
+
+// Render the comments associated with the current post
+function displayComments() {
+  if (!commentsList) return;
+  // Clear existing comments
+  commentsList.innerHTML = "";
+  const comments =
+    currentPost && Array.isArray(currentPost.comments)
+      ? currentPost.comments
+      : [];
+  if (comments.length === 0) {
+    const li = document.createElement("li");
+    li.className = "no-comments";
+    li.textContent = "No comments yet.";
+    commentsList.appendChild(li);
+    return;
+  }
+  comments.forEach((comment) => {
+    const li = document.createElement("li");
+    li.className = "comment-item";
+
+    // Upvote button for the comment
+    const upvoteBtn = document.createElement("button");
+    upvoteBtn.className = "comment-upvote-btn";
+    upvoteBtn.innerHTML = `<span class="comment-vote-icon">▲</span> <span class="comment-vote-count">${
+      comment.votes || 0
+    }</span>`;
+    upvoteBtn.addEventListener("click", () => {
+      upvoteComment(comment.commentId);
+    });
+
+    // Comment text
+    const textDiv = document.createElement("div");
+    textDiv.className = "comment-text";
+    textDiv.textContent = comment.text;
+
+    // Comment meta (author and date)
+    const metaDiv = document.createElement("div");
+    metaDiv.className = "comment-meta";
+    const author = comment.userEmail
+      ? comment.userEmail.split("@")[0]
+      : "Anonymous";
+    const date = new Date(comment.date);
+    metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
+
+    li.appendChild(upvoteBtn);
+    li.appendChild(textDiv);
+    li.appendChild(metaDiv);
+    commentsList.appendChild(li);
+  });
+}
+
+// Handle new comment submission
+async function handleCommentSubmit(event) {
+  event.preventDefault();
+  if (!commentText) return;
+  const text = commentText.value.trim();
+  if (!text) return;
+  try {
+    const response = await fetch(`/api/posts/${postId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userEmail: currentUser.email, text }),
+    });
+    const data = await response.json();
+    if (data.success) {
+      // Clear input and reload post data to show the new comment
+      commentText.value = "";
+      await loadPost();
+    } else {
+      console.error("Failed to add comment:", data.message || data.error);
+      alert(data.message || "Failed to add comment");
+    }
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    alert("An error occurred while adding your comment. Please try again.");
+  }
+}
+
+// Upvote the current post
+async function upvoteCurrentPost() {
+  try {
+    const response = await fetch(`/api/posts/${postId}/upvote`, {
+      method: "POST",
+    });
+    const data = await response.json();
+    if (data.success) {
+      // Update vote count locally and on UI
+      currentPost.votes = (currentPost.votes || 0) + 1;
+      document.getElementById("voteCount").textContent = currentPost.votes;
+    } else {
+      console.error("Failed to upvote post:", data.message || data.error);
+      alert(data.message || "Failed to upvote post");
+    }
+  } catch (error) {
+    console.error("Error upvoting post:", error);
+    alert("An error occurred while upvoting the post. Please try again.");
+  }
+}
+
+// Upvote a specific comment by its commentId
+async function upvoteComment(commentId) {
+  try {
+    const response = await fetch(
+      `/api/posts/${postId}/comments/${commentId}/upvote`,
+      { method: "POST" }
+    );
+    const data = await response.json();
+    if (data.success) {
+      // Reload the post to refresh comment vote counts
+      await loadPost();
+    } else {
+      console.error("Failed to upvote comment:", data.message || data.error);
+      alert(data.message || "Failed to upvote comment");
+    }
+  } catch (error) {
+    console.error("Error upvoting comment:", error);
+    alert(
+      "An error occurred while upvoting the comment. Please try again."
+    );
+  }
 }
 
 // Show error message
