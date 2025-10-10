@@ -44,6 +44,23 @@
           Failed to load post. Please try again.
         </div>
       </div>
+
+      <!-- Comments Section separate from post container. -->
+      <div id="commentsSection" class="post-container comments-container">
+        <h2>Comments</h2>
+        <!-- Form for adding a new comment -->
+        <form id="commentForm" class="comment-form">
+          <textarea
+            id="commentText"
+            class="comment-textarea"
+            placeholder="Join the conversation"
+            required
+          ></textarea>
+          <button type="submit" class="btn-comment">Post Comment</button>
+        </form>
+        <!-- List of comments will be rendered here -->
+        <ul id="commentsList" class="comments-list"></ul>
+      </div>
     </div>
 
     <script type="module" src="js/post.js"></script>
