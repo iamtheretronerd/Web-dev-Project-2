@@ -159,7 +159,7 @@ body {
   color: white;
 }
 
-/* When the upvote button is disabled because the user has already voted,
+/* When the upvote button is disabled (because the user has already voted),
    reduce opacity and cursor to indicate it's inactive */
 .btn-upvote:disabled {
   opacity: 0.6;
@@ -175,6 +175,8 @@ body {
 }
 
 /* Comments Container */
+/* Comments container shares the same styling as the post card via the
+   `post-container` class.  Only set a top margin here. */
 .comments-container {
   margin-top: 40px;
 }
@@ -263,4 +265,77 @@ body {
   font-size: 12px;
   color: #888;
   margin-top: 4px;
+}
+
+/* Reply threads */
+/* Nested reply list.  Indent each level and draw a light vertical line
+   to visually connect reply threads, similar to Reddit.  The
+   combination of margin and padding offsets the line so that reply
+   items align nicely under their parent comment. */
+.replies-list {
+  list-style: none;
+  margin-left: 20px;      /* indent the nested list */
+  padding-left: 20px;     /* space between the line and content */
+  border-left: 2px solid #232323; /* vertical line connecting replies */
+}
+
+.reply-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.reply-text {
+  flex: 1;
+  font-size: 15px;
+  color: #333;
+}
+
+.reply-meta {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* Reply button under a comment */
+.comment-reply-btn {
+  margin-top: 10px;
+  background-color: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.comment-reply-btn:hover {
+  text-decoration: underline;
+}
+
+/* Reply form section */
+.reply-section {
+  margin-top: 10px;
+}
+
+.reply-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: vertical;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.btn-reply {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn-reply:hover {
+  background-color: #218838;
 }

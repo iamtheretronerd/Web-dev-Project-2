@@ -10,6 +10,7 @@ import {
   upvoteComment,
   togglePostVote,
   toggleCommentVote,
+  addReplyToComment,
 } from "../db/postsDB.js";
 
 const router = express.Router();
@@ -214,7 +215,7 @@ router.post("/:postId/comments", async (req, res) => {
 
 // Toggle upvote on a comment - POST /api/posts/:postId/comments/:commentId/upvote
 // Requires the user's email in the request body.  If the user has
-// previously upvoted the comment, their vote is removed, otherwise it is added.
+// previously upvoted the comment, their vote is removed; otherwise it is added.
 router.post("/:postId/comments/:commentId/upvote", async (req, res) => {
   try {
     const { postId, commentId } = req.params;
@@ -237,6 +238,29 @@ router.post("/:postId/comments/:commentId/upvote", async (req, res) => {
   } catch (error) {
     console.error("Toggle comment upvote error:", error);
     res.status(500).json({ success: false, message: "Failed to toggle comment vote", error: error.message });
+  }
+});
+
+// Add a reply to a comment - POST /api/posts/:postId/comments/:commentId/replies
+// Requires the user's email and reply text in the request body.
+router.post("/:postId/comments/:commentId/replies", async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+    const { userEmail, text } = req.body;
+    if (!postId || !commentId) {
+      return res.status(400).json({ success: false, message: "Post ID and comment ID are required" });
+    }
+    if (!userEmail || !text) {
+      return res.status(400).json({ success: false, message: "User email and text are required" });
+    }
+    const result = await addReplyToComment(postId, commentId, { userEmail, text });
+    if (!result || result.matchedCount === 0) {
+      return res.status(404).json({ success: false, message: "Post or comment not found" });
+    }
+    return res.json({ success: true, message: "Reply added successfully" });
+  } catch (error) {
+    console.error("Add reply error:", error);
+    res.status(500).json({ success: false, message: "Failed to add reply", error: error.message });
   }
 });
 

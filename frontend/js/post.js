@@ -126,51 +126,168 @@ function displayPost() {
 // Render the comments associated with the current post
 function displayComments() {
   if (!commentsList) return;
-  // Clear existing comments
   commentsList.innerHTML = "";
-  const comments = (currentPost && Array.isArray(currentPost.comments))
+  const comments = currentPost && Array.isArray(currentPost.comments)
     ? currentPost.comments
     : [];
-  if (comments.length === 0) {
+  if (!comments || comments.length === 0) {
     const li = document.createElement("li");
     li.className = "no-comments";
     li.textContent = "No comments yet.";
     commentsList.appendChild(li);
     return;
   }
-  comments.forEach((comment) => {
-    const li = document.createElement("li");
-    li.className = "comment-item";
-
-    // Upvote button for the comment
-    const upvoteBtn = document.createElement("button");
-    upvoteBtn.className = "comment-upvote-btn";
-    upvoteBtn.innerHTML = `<span class="comment-vote-icon">▲</span> <span class="comment-vote-count">${comment.votes || 0}</span>`;
-    // Apply upvoted class if current user already voted
-    if (comment.voters && comment.voters.includes(currentUser.email)) {
-      upvoteBtn.classList.add("upvoted");
-    }
-    upvoteBtn.addEventListener("click", () => {
-      upvoteComment(comment.commentId);
-    });
-
-    // Comment text
-    const textDiv = document.createElement("div");
-    textDiv.className = "comment-text";
-    textDiv.textContent = comment.text;
-
-    // Comment meta (author and date)
-    const metaDiv = document.createElement("div");
-    metaDiv.className = "comment-meta";
-    const author = comment.userEmail ? comment.userEmail.split("@")[0] : "Anonymous";
-    const date = new Date(comment.date);
-    metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
-
-    li.appendChild(upvoteBtn);
-    li.appendChild(textDiv);
-    li.appendChild(metaDiv);
-    commentsList.appendChild(li);
+  // Build a hierarchical tree from the flat comments array using parentId
+  const roots = buildCommentTree(comments);
+  roots.forEach((root) => {
+    renderComment(root, commentsList);
   });
+}
+
+/**
+ * Construct a tree of comments from a flat array.  Each comment has
+ * a unique commentId and may have a parentId referencing another
+ * comment's id.  Top‑level comments have parentId set to null.
+ *
+ * @param {Array} comments The array of comment objects from the server
+ * @returns {Array} Array of root comments with nested children
+ */
+function buildCommentTree(comments) {
+  const map = new Map();
+  const roots = [];
+  // Insert all comments into the map by id and initialize children array
+  comments.forEach((comment) => {
+    const cid = idToString(comment.commentId);
+    const pid = comment.parentId ? idToString(comment.parentId) : null;
+    map.set(cid, { ...comment, commentId: cid, parentId: pid, children: [] });
+  });
+  // Link children to parents
+  map.forEach((comment) => {
+    if (!comment.parentId) {
+      roots.push(comment);
+    } else {
+      const parent = map.get(comment.parentId);
+      if (parent) {
+        parent.children.push(comment);
+      }
+    }
+  });
+  return roots;
+}
+
+/**
+ * Recursively render a comment and its children into the DOM.  Each
+ * comment is rendered as an <li> with upvote button, text, meta,
+ * reply button and nested replies.  Children comments are rendered
+ * inside a nested <ul> with the `replies-list` class, which uses
+ * CSS indentation and a border to visually connect threads.
+ *
+ * @param {object} comment The comment to render
+ * @param {HTMLElement} container The ul element to append to
+ */
+function renderComment(comment, container) {
+  const li = document.createElement("li");
+  li.className = "comment-item";
+
+  // Upvote button and vote count
+  const upvoteBtn = document.createElement("button");
+  upvoteBtn.className = "comment-upvote-btn";
+  upvoteBtn.innerHTML = `<span class="comment-vote-icon">▲</span> <span class="comment-vote-count">${comment.votes || 0}</span>`;
+  if (Array.isArray(comment.voters) && comment.voters.includes(currentUser.email)) {
+    upvoteBtn.classList.add("upvoted");
+  }
+  upvoteBtn.addEventListener("click", () => {
+    upvoteComment(comment.commentId);
+  });
+
+  // Comment text
+  const textDiv = document.createElement("div");
+  textDiv.className = "comment-text";
+  textDiv.textContent = comment.text;
+
+  // Meta (author and date)
+  const metaDiv = document.createElement("div");
+  metaDiv.className = "comment-meta";
+  const author = comment.userEmail ? comment.userEmail.split("@")[0] : "Anonymous";
+  const date = new Date(comment.date);
+  metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
+
+  // Reply button
+  const replyBtn = document.createElement("button");
+  replyBtn.className = "comment-reply-btn";
+  replyBtn.textContent = "Reply";
+
+  // Reply form (hidden by default)
+  const replySection = document.createElement("div");
+  replySection.className = "reply-section";
+  replySection.style.display = "none";
+  const replyTextarea = document.createElement("textarea");
+  replyTextarea.className = "reply-textarea";
+  replyTextarea.placeholder = "Write a reply...";
+  const replySubmit = document.createElement("button");
+  replySubmit.className = "btn-reply";
+  replySubmit.textContent = "Post Reply";
+  replySubmit.addEventListener("click", async () => {
+    const text = replyTextarea.value.trim();
+    if (!text) return;
+    try {
+      const resp = await fetch(`/api/posts/${postId}/comments/${comment.commentId}/replies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail: currentUser.email, text }),
+      });
+      const resData = await resp.json();
+      if (resData.success) {
+        replyTextarea.value = "";
+        replySection.style.display = "none";
+        await loadPost();
+      } else {
+        alert(resData.message || "Failed to add reply");
+      }
+    } catch (err) {
+      console.error("Error adding reply:", err);
+      alert("An error occurred while posting your reply.");
+    }
+  });
+  replySection.appendChild(replyTextarea);
+  replySection.appendChild(replySubmit);
+
+  replyBtn.addEventListener("click", () => {
+    replySection.style.display = replySection.style.display === "none" ? "block" : "none";
+  });
+
+  li.appendChild(upvoteBtn);
+  li.appendChild(textDiv);
+  li.appendChild(metaDiv);
+  li.appendChild(replyBtn);
+  li.appendChild(replySection);
+
+  // Render children recursively if present
+  if (comment.children && comment.children.length > 0) {
+    const childList = document.createElement("ul");
+    childList.className = "replies-list";
+    comment.children.forEach((child) => {
+      renderComment(child, childList);
+    });
+    li.appendChild(childList);
+  }
+
+  container.appendChild(li);
+}
+
+/**
+ * Convert an ObjectId-like value into a string.  MongoDB returns
+ * ObjectId values as objects with a $oid key; this helper extracts
+ * the string or returns it unchanged if already a string.
+ *
+ * @param {any} id The id value from the document
+ * @returns {string} String representation of the id
+ */
+function idToString(id) {
+  if (!id) return "";
+  if (typeof id === "string") return id;
+  if (typeof id === "object" && "$oid" in id) return id.$oid;
+  return id.toString();
 }
 
 // Handle new comment submission
