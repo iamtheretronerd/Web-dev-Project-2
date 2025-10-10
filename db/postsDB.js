@@ -1,4 +1,5 @@
 import MyMongoDB from "./myMongoDB.js";
+import { ObjectId } from "mongodb";
 
 const postsDB = MyMongoDB({
   dbName: "9thSeat",
@@ -70,9 +71,61 @@ export const getPostById = async (postId) => {
   const { client, collection } = await postsDB.connect();
 
   try {
-    const { ObjectId } = await import("mongodb");
+    // import at top const { ObjectId } = await import("mongodb");
     const post = await collection.findOne({ _id: new ObjectId(postId) });
     return post;
+  } finally {
+    await client.close();
+  }
+};
+
+// Upvote a post by ID
+export const upvotePost = async postId => {
+  const { client, collection } = await postsDB.connect();
+  try {
+    const result = await collection.updateOne(
+      { _id: new ObjectId(postId) },
+      { $inc: { votes: 1 } }
+    );
+    return result;
+  } finally {
+    await client.close();
+  }
+};
+
+// Add a comment with its onw commentId, author email, text, timestamp, 
+// and an empty array for replies, use mongoDB $push operator to appet it to the comments aray of post
+
+export const addCommentToPost = async (postId, { userEmail, text }) => {
+  const { client, collection } = await postsDB.connect();
+  try {
+    const comment = {
+      commentId: new ObjectId(),
+      userEmail,
+      text,
+      date: new Date(),
+      votes: 0,
+      replies: [],
+    };
+    const result = await collection.updateOne(
+      { _id: new ObjectId(postId) },
+      { $push: { comments: comment } }
+    );
+    return result;
+  } finally {
+    await client.close();
+  }
+};
+
+// Upvote a comment, uses positional $ operator to increment a nested comment's votes field
+export const upvoteComment = async (postId, commentId) => {
+  const { client, collection } = await postsDB.connect();
+  try {
+    const result = await collection.updateOne(
+      { _id: new ObjectId(postId), "comments.commentId": new ObjectId(commentId) },
+      { $inc: { "comments.$.votes": 1 } }
+    );
+    return result;
   } finally {
     await client.close();
   }
