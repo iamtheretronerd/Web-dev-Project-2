@@ -126,6 +126,7 @@ function displayPost() {
 // Render the comments associated with the current post
 function displayComments() {
   if (!commentsList) return;
+  // Clear existing comments
   commentsList.innerHTML = "";
   const comments = currentPost && Array.isArray(currentPost.comments)
     ? currentPost.comments
@@ -137,31 +138,37 @@ function displayComments() {
     commentsList.appendChild(li);
     return;
   }
-  // Build a hierarchical tree from the flat comments array using parentId
+  // Build a comment tree from the flat comments array.  Each comment
+  // will have a children array containing its direct replies.
   const roots = buildCommentTree(comments);
   roots.forEach((root) => {
-    renderComment(root, commentsList);
+    // Pass depth parameter (0 for root) when rendering comments
+    renderComment(root, commentsList, 0);
   });
 }
 
 /**
- * Construct a tree of comments from a flat array.  Each comment has
- * a unique commentId and may have a parentId referencing another
- * comment's id.  Top‑level comments have parentId set to null.
+ * Construct a hierarchical tree of comments from a flat array.  Each
+ * comment must have a unique commentId and may have a parentId that
+ * references the commentId of its parent.  Top-level comments have
+ * parentId equal to null.  The returned list contains all root
+ * comments with their children recursively attached.
  *
- * @param {Array} comments The array of comment objects from the server
- * @returns {Array} Array of root comments with nested children
+ * @param {Array} comments Array of comment objects from the server
+ * @returns {Array} Array of root comments with children
  */
 function buildCommentTree(comments) {
   const map = new Map();
   const roots = [];
-  // Insert all comments into the map by id and initialize children array
+  // Initialize the map with all comments and set up an empty children array
   comments.forEach((comment) => {
+    // Ensure we work with a shallow copy to avoid mutating the original
+    // objects, and convert commentId/parentId to strings for map keys.
     const cid = idToString(comment.commentId);
     const pid = comment.parentId ? idToString(comment.parentId) : null;
     map.set(cid, { ...comment, commentId: cid, parentId: pid, children: [] });
   });
-  // Link children to parents
+  // Build the tree by linking children to their parents
   map.forEach((comment) => {
     if (!comment.parentId) {
       roots.push(comment);
@@ -177,17 +184,22 @@ function buildCommentTree(comments) {
 
 /**
  * Recursively render a comment and its children into the DOM.  Each
- * comment is rendered as an <li> with upvote button, text, meta,
- * reply button and nested replies.  Children comments are rendered
- * inside a nested <ul> with the `replies-list` class, which uses
- * CSS indentation and a border to visually connect threads.
+ * comment is rendered inside an <li> element with the comment-item
+ * class.  Children comments are rendered below the parent inside
+ * a nested <ul> with the replies-list class.  A toggle button
+ * collapses deep reply chains (depth >= 3) by default.
  *
- * @param {object} comment The comment to render
- * @param {HTMLElement} container The ul element to append to
+ * @param {object} comment The comment object to render
+ * @param {HTMLElement} container The DOM element (ul) to append this comment into
+ * @param {number} depth The current depth of this comment in the thread
  */
-function renderComment(comment, container) {
+function renderComment(comment, container, depth = 0) {
   const li = document.createElement("li");
   li.className = "comment-item";
+
+  // Create a row container to hold upvote button and comment content
+  const rowDiv = document.createElement("div");
+  rowDiv.className = "comment-row";
 
   // Upvote button and vote count
   const upvoteBtn = document.createElement("button");
@@ -200,22 +212,29 @@ function renderComment(comment, container) {
     upvoteComment(comment.commentId);
   });
 
+  // Comment content container
+  const contentDiv = document.createElement("div");
+  contentDiv.className = "comment-content";
+
   // Comment text
   const textDiv = document.createElement("div");
   textDiv.className = "comment-text";
   textDiv.textContent = comment.text;
+  contentDiv.appendChild(textDiv);
 
-  // Meta (author and date)
+  // Comment meta (author and date)
   const metaDiv = document.createElement("div");
   metaDiv.className = "comment-meta";
   const author = comment.userEmail ? comment.userEmail.split("@")[0] : "Anonymous";
   const date = new Date(comment.date);
   metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
+  contentDiv.appendChild(metaDiv);
 
   // Reply button
   const replyBtn = document.createElement("button");
   replyBtn.className = "comment-reply-btn";
   replyBtn.textContent = "Reply";
+  contentDiv.appendChild(replyBtn);
 
   // Reply form (hidden by default)
   const replySection = document.createElement("div");
@@ -256,19 +275,42 @@ function renderComment(comment, container) {
     replySection.style.display = replySection.style.display === "none" ? "block" : "none";
   });
 
-  li.appendChild(upvoteBtn);
-  li.appendChild(textDiv);
-  li.appendChild(metaDiv);
-  li.appendChild(replyBtn);
-  li.appendChild(replySection);
+  contentDiv.appendChild(replySection);
 
-  // Render children recursively if present
+  // Assemble row
+  rowDiv.appendChild(upvoteBtn);
+  rowDiv.appendChild(contentDiv);
+  li.appendChild(rowDiv);
+
+  // Render children, if any
   if (comment.children && comment.children.length > 0) {
+    // Create a container for replies
     const childList = document.createElement("ul");
     childList.className = "replies-list";
+    // If depth >= 2, collapse the thread by default and show a toggle
+    let collapsed = depth >= 3;
+    if (collapsed) {
+      childList.style.display = "none";
+    }
     comment.children.forEach((child) => {
-      renderComment(child, childList);
+      renderComment(child, childList, depth + 1);
     });
+    // Add toggle button to show/hide replies if deep chain
+    if (depth >= 1) {
+      const toggleBtn = document.createElement("button");
+      toggleBtn.className = "reply-toggle-btn";
+      toggleBtn.textContent = collapsed
+        ? `Show ${comment.children.length} repl${comment.children.length > 1 ? "ies" : "y"}`
+        : "Hide replies";
+      toggleBtn.addEventListener("click", () => {
+        collapsed = !collapsed;
+        childList.style.display = collapsed ? "none" : "block";
+        toggleBtn.textContent = collapsed
+          ? `Show ${comment.children.length} repl${comment.children.length > 1 ? "ies" : "y"}`
+          : "Hide replies";
+      });
+      li.appendChild(toggleBtn);
+    }
     li.appendChild(childList);
   }
 
@@ -276,17 +318,20 @@ function renderComment(comment, container) {
 }
 
 /**
- * Convert an ObjectId-like value into a string.  MongoDB returns
- * ObjectId values as objects with a $oid key; this helper extracts
- * the string or returns it unchanged if already a string.
+ * Convert an ObjectId-like value into a string.  MongoDB's driver
+ * serializes ObjectId values as objects with a `$oid` key when
+ * returning JSON.  To build map keys correctly, we extract the
+ * underlying string representation.  If the input is already a
+ * string, it is returned unchanged.
  *
  * @param {any} id The id value from the document
- * @returns {string} String representation of the id
+ * @returns {string} A string representation of the id
  */
 function idToString(id) {
   if (!id) return "";
   if (typeof id === "string") return id;
   if (typeof id === "object" && "$oid" in id) return id.$oid;
+  // Last resort: call toString on the object
   return id.toString();
 }
 

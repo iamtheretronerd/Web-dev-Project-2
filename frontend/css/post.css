@@ -225,12 +225,33 @@ body {
   padding-top: 10px;
 }
 
+/* Each comment item is a block with a bottom border.  The layout of its
+   contents (upvote button and comment content) is handled by
+   .comment-row.  Do not use flex here so that nested reply lists
+   appear below rather than beside the comment row. */
 .comment-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  /* Add some vertical spacing between comments */
+  margin-bottom: 10px;
+}
+
+/* Row containing the upvote button and the comment content.  This
+   row uses flexbox to lay out the vote button and content
+   horizontally. */
+.comment-row {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+}
+
+/* Container for the comment text, meta, reply button and form.  Use
+   flex-direction: column so elements stack vertically. */
+.comment-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .comment-upvote-btn {
@@ -255,28 +276,34 @@ body {
   font-weight: bold;
 }
 
+/* Comment text occupies full width within the content container */
 .comment-text {
-  flex: 1;
   font-size: 16px;
   color: #333;
+  word-wrap: break-word;
 }
 
+/* Meta information (author and date) appears after the text */
 .comment-meta {
   font-size: 12px;
   color: #888;
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 /* Reply threads */
-/* Nested reply list.  Indent each level and draw a light vertical line
-   to visually connect reply threads, similar to Reddit.  The
-   combination of margin and padding offsets the line so that reply
-   items align nicely under their parent comment. */
+/* Nested replies list.  Indent nested comments and add a subtle
+   border to visually connect reply threads. */
 .replies-list {
   list-style: none;
-  margin-left: 20px;      /* indent the nested list */
-  padding-left: 20px;     /* space between the line and content */
-  border-left: 2px solid #232323; /* vertical line connecting replies */
+  /* Keep nested replies aligned with the comment container by
+     removing the margin-left.  Use padding-left to create a
+     slight indent inside the comment box and draw a vertical
+     line to connect replies. */
+  margin-left: 0;
+  padding-left: 20px;
+  border-left: 2px solid #ddd;
+  /* Add top margin so nested replies appear below their parent comment */
+  margin-top: 10px;
 }
 
 .reply-item {
@@ -298,7 +325,7 @@ body {
 
 /* Reply button under a comment */
 .comment-reply-btn {
-  margin-top: 10px;
+  margin-top: 6px;
   background-color: transparent;
   border: none;
   color: #007bff;
@@ -338,4 +365,20 @@ body {
 
 .btn-reply:hover {
   background-color: #218838;
+}
+
+/* Toggle button to show or hide deep reply chains.  Appears under
+   comments with children at depth >= 3. */
+.reply-toggle-btn {
+  background-color: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.reply-toggle-btn:hover {
+  text-decoration: underline;
 }
