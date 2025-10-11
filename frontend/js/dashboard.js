@@ -38,6 +38,14 @@ function setupEventListeners() {
     window.location.href = "/";
   });
 
+  // Add this in the setupEventListeners function:
+  document.getElementById("userAvatar").addEventListener("click", () => {
+    window.location.href = "/user.html";
+  });
+
+  // Also add CSS cursor pointer style for the avatar
+  document.getElementById("userAvatar").style.cursor = "pointer";
+
   // Create post
   document
     .getElementById("createPostBtn")

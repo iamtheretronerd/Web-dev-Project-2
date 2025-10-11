@@ -126,11 +126,11 @@ function displayPost() {
 // Render the comments associated with the current post
 function displayComments() {
   if (!commentsList) return;
-  // Clear existing comments
   commentsList.innerHTML = "";
-  const comments = (currentPost && Array.isArray(currentPost.comments))
-    ? currentPost.comments
-    : [];
+  const comments =
+    currentPost && Array.isArray(currentPost.comments)
+      ? currentPost.comments
+      : [];
   if (comments.length === 0) {
     const li = document.createElement("li");
     li.className = "no-comments";
@@ -162,7 +162,9 @@ function displayComments() {
     // Comment meta (author and date)
     const metaDiv = document.createElement("div");
     metaDiv.className = "comment-meta";
-    const author = comment.userEmail ? comment.userEmail.split("@")[0] : "Anonymous";
+    const author = comment.userEmail
+      ? comment.userEmail.split("@")[0]
+      : "Anonymous";
     const date = new Date(comment.date);
     metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
 
@@ -225,17 +227,23 @@ async function upvoteCurrentPost() {
 // Upvote a specific comment by its commentId
 async function upvoteComment(commentId) {
   try {
-    const response = await fetch(`/api/posts/${postId}/comments/${commentId}/upvote`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userEmail: currentUser.email }),
-    });
+    const response = await fetch(
+      `/api/posts/${postId}/comments/${commentId}/upvote`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail: currentUser.email }),
+      },
+    );
     const data = await response.json();
     if (data.success) {
       // Refresh the post to update comment vote counts and button states
       await loadPost();
     } else {
-      console.error("Failed to toggle comment vote:", data.message || data.error);
+      console.error(
+        "Failed to toggle comment vote:",
+        data.message || data.error,
+      );
       alert(data.message || "Failed to toggle comment vote");
     }
   } catch (error) {

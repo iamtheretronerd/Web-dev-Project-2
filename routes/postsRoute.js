@@ -167,23 +167,35 @@ router.post("/:id/upvote", async (req, res) => {
     const { id } = req.params;
     const { userEmail } = req.body;
     if (!id) {
-      return res.status(400).json({ success: false, message: "Post ID is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Post ID is required" });
     }
     if (!userEmail) {
-      return res.status(400).json({ success: false, message: "User email is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User email is required" });
     }
     const result = await togglePostVote(id, userEmail);
     if (!result) {
-      return res.status(404).json({ success: false, message: "Post not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
     }
     res.json({
       success: true,
       upvoted: result.upvoted,
-      message: result.upvoted ? "Post upvoted successfully" : "Post vote removed",
+      message: result.upvoted
+        ? "Post upvoted successfully"
+        : "Post vote removed",
     });
   } catch (error) {
     console.error("Toggle post upvote error:", error);
-    res.status(500).json({ success: false, message: "Failed to toggle vote", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to toggle vote",
+      error: error.message,
+    });
   }
 });
 
@@ -193,22 +205,32 @@ router.post("/:postId/comments", async (req, res) => {
     const { postId } = req.params;
     const { userEmail, text } = req.body;
     if (!postId) {
-      return res.status(400).json({ success: false, message: "Post ID is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Post ID is required" });
     }
     if (!userEmail || !text) {
-      return res.status(400).json({ success: false, message: "User email and text are required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User email and text are required" });
     }
     const result = await addCommentToPost(postId, { userEmail, text });
     // Use matchedCount instead of modifiedCount because pushing to a
     // potentially undefined array will not always increment modifiedCount.
     // matchedCount indicates whether a document with the given ID exists.
     if (!result || result.matchedCount === 0) {
-      return res.status(404).json({ success: false, message: "Post not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
     }
     res.json({ success: true, message: "Comment added successfully" });
   } catch (error) {
     console.error("Add comment error:", error);
-    res.status(500).json({ success: false, message: "Failed to add comment", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to add comment",
+      error: error.message,
+    });
   }
 });
 
@@ -220,23 +242,36 @@ router.post("/:postId/comments/:commentId/upvote", async (req, res) => {
     const { postId, commentId } = req.params;
     const { userEmail } = req.body;
     if (!postId || !commentId) {
-      return res.status(400).json({ success: false, message: "Post ID and comment ID are required" });
+      return res.status(400).json({
+        success: false,
+        message: "Post ID and comment ID are required",
+      });
     }
     if (!userEmail) {
-      return res.status(400).json({ success: false, message: "User email is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User email is required" });
     }
     const result = await toggleCommentVote(postId, commentId, userEmail);
     if (!result) {
-      return res.status(404).json({ success: false, message: "Comment not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Comment not found" });
     }
     res.json({
       success: true,
       upvoted: result.upvoted,
-      message: result.upvoted ? "Comment upvoted successfully" : "Comment vote removed",
+      message: result.upvoted
+        ? "Comment upvoted successfully"
+        : "Comment vote removed",
     });
   } catch (error) {
     console.error("Toggle comment upvote error:", error);
-    res.status(500).json({ success: false, message: "Failed to toggle comment vote", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to toggle comment vote",
+      error: error.message,
+    });
   }
 });
 
