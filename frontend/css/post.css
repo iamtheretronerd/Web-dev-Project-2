@@ -16,7 +16,6 @@ body {
   margin: 0 auto;
 }
 
-/* Header */
 .header {
   display: flex;
   justify-content: space-between;
@@ -75,7 +74,6 @@ body {
   background-color: #c82333;
 }
 
-/* Post Container */
 .post-container {
   background-color: white;
   padding: 40px;
@@ -97,7 +95,6 @@ body {
   padding: 40px;
 }
 
-/* Post Content */
 .post-title {
   font-size: 32px;
   color: #333;
@@ -127,7 +124,6 @@ body {
   white-space: pre-wrap;
 }
 
-/* Post Actions */
 .post-actions {
   display: flex;
   gap: 15px;
@@ -159,8 +155,6 @@ body {
   color: white;
 }
 
-/* When the upvote button is disabled (because the user has already voted),
-   reduce opacity and cursor to indicate it's inactive */
 .btn-upvote:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -170,18 +164,14 @@ body {
   font-size: 20px;
 }
 
-#voteCount {
+.vote-count {
   font-weight: bold;
 }
 
-/* Comments Container */
-/* Comments container shares the same styling as the post card via the
-   `post-container` class.  Only set a top margin here. */
 .comments-container {
   margin-top: 40px;
 }
 
-/* Comment form */
 .comment-form {
   display: flex;
   flex-direction: column;
@@ -218,14 +208,12 @@ body {
   padding-left: 0;
 }
 
-/* When there are no comments, style the placeholder message */
 .no-comments {
   font-size: 16px;
   color: #666;
   padding-top: 10px;
 }
 
-/* Each comment item is a block with a bottom border. */
 .comment-item {
   padding: 10px 0;
   border-bottom: 1px solid #eee;
@@ -233,17 +221,12 @@ body {
   margin-bottom: 10px;
 }
 
-/* Row containing the upvote button and the comment content. This
-   row uses flexbox to lay out the vote button and content
-   horizontally. */
 .comment-row {
   display: flex;
   align-items: flex-start;
   gap: 10px;
 }
 
-/* Container for the comment text, meta, reply button and form. Use
-   flex direction column so elements stack vertically. */
 .comment-content {
   flex: 1;
   display: flex;
@@ -266,30 +249,23 @@ body {
   color: #0056b3;
 }
 
-/* When a user has upvoted a comment, highlight the button to
-   indicate the active state */
 .comment-upvote-btn.upvoted {
   color: #0056b3;
   font-weight: bold;
 }
 
-/* Comment text occupies full width within the content container */
 .comment-text {
   font-size: 16px;
   color: #333;
   word-wrap: break-word;
 }
 
-/* Meta information (author and date) appears after the text */
 .comment-meta {
   font-size: 12px;
   color: #888;
   margin-top: 0;
 }
 
-/* Reply threads */
-/* Nested replies list.  Indent nested comments and add a subtle
-   border to visually connect reply threads. */
 .replies-list {
   list-style: none;
   margin-left: 0;
@@ -315,7 +291,6 @@ body {
   margin-top: 2px;
 }
 
-/* Reply button under a comment */
 .comment-reply-btn {
   margin-top: 6px;
   background-color: transparent;
@@ -330,7 +305,6 @@ body {
   text-decoration: underline;
 }
 
-/* Reply form section */
 .reply-section {
   margin-top: 10px;
 }
@@ -359,8 +333,6 @@ body {
   background-color: #218838;
 }
 
-/* Toggle button to show or hide deep reply chains.  Appears under
-   comments with children at depth >= 3. */
 .reply-toggle-btn {
   background-color: transparent;
   border: none;

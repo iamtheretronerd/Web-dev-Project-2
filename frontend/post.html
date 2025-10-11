@@ -8,22 +8,25 @@
   </head>
   <body>
     <div class="container">
-      <!-- Header with back button -->
       <div class="header">
         <button id="backBtn" class="btn-back">← Back to Dashboard</button>
         <div class="header-right">
-          <img id="userAvatar" class="user-avatar" src="" alt="Profile" />
+          <img
+            id="userAvatar"
+            class="user-avatar"
+            src="https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=default"
+            alt="Profile"
+          />
           <span id="userNameDisplay"></span>
           <button id="logoutBtn" class="btn-logout">Logout</button>
         </div>
       </div>
 
-      <!-- Post Content -->
       <div class="post-container">
         <div id="loadingMessage" class="loading">Loading post...</div>
 
         <div id="postContent" style="display: none">
-          <h1 id="postTitle" class="post-title"></h1>
+          <h1 id="postTitle" class="post-title">Post</h1>
 
           <div class="post-meta">
             <span class="post-author">by <span id="postAuthor"></span></span>
@@ -35,7 +38,7 @@
           <div class="post-actions">
             <button id="upvoteBtn" class="btn-upvote">
               <span class="vote-icon">▲</span>
-              <span id="voteCount">0</span>
+              <span id="voteCount" class="vote-count">0</span>
             </button>
           </div>
         </div>
@@ -45,9 +48,6 @@
         </div>
       </div>
 
-      <!-- Comments Section separate from post container.  Wrap it in
-           the same post-container class to mirror the styling and
-           centering of the post above. -->
       <div id="commentsSection" class="post-container comments-container">
         <h2>Comments</h2>
         <!-- Form for adding a new comment -->
@@ -60,7 +60,6 @@
           ></textarea>
           <button type="submit" class="btn-comment">Post Comment</button>
         </form>
-        <!-- List of comments will be rendered here -->
         <ul id="commentsList" class="comments-list"></ul>
       </div>
     </div>

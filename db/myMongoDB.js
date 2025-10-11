@@ -33,34 +33,6 @@ function MyMongoDB({
     }
   };
 
-  // Testing MongoDB connection by inserting and fetching a test document
-  me.getTest = async () => {
-    const { client, collection } = await connect();
-
-    try {
-      const testDoc = await collection.findOne({ type: "test" });
-      if (!testDoc) {
-        console.log("No test document found, creating one...");
-        await collection.insertOne({
-          type: "test",
-          message: "Hello from MongoDB!",
-          timestamp: new Date(),
-        });
-        const newDoc = await collection.findOne({ type: "test" });
-        return newDoc;
-      }
-
-      console.log("Fetched test document from MongoDB");
-      return testDoc;
-    } catch (err) {
-      console.error("Error fetching test from MongoDB:", err);
-      throw err;
-    } finally {
-      await client.close();
-      console.log("MongoDB connection closed");
-    }
-  };
-
   // Get all documents from collection
   me.getDocuments = async (query = {}) => {
     const { client, collection } = await connect();

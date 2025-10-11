@@ -1,4 +1,3 @@
-// Global variable for current user
 let currentUser = null;
 
 // Check if user is logged in
@@ -12,36 +11,29 @@ window.addEventListener("DOMContentLoaded", () => {
 
   currentUser = JSON.parse(userStr);
 
-  // Pre-fill form with current user data
   document.getElementById("name").value = currentUser.name;
   document.getElementById("email").value = currentUser.email;
 
-  // Set initial avatar
   updateAvatar(currentUser.name);
 
-  // Setup event listeners
   setupEventListeners();
 });
 
 // Setup all event listeners
 function setupEventListeners() {
-  // Back button
   document.getElementById("backBtn").addEventListener("click", () => {
     window.location.href = "/dashboard.html";
   });
 
-  // Cancel button
   document.getElementById("cancelBtn").addEventListener("click", () => {
     window.location.href = "/dashboard.html";
   });
 
-  // Name input change updates avatar
   document.getElementById("name").addEventListener("input", (e) => {
     const name = e.target.value.trim();
     updateAvatar(name || "default");
   });
 
-  // Form submission
   document
     .getElementById("editProfileForm")
     .addEventListener("submit", handleFormSubmit);
@@ -62,25 +54,21 @@ async function handleFormSubmit(e) {
   const password = document.getElementById("password").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
 
-  // Validate password confirmation if password is provided
   if (password && password !== confirmPassword) {
     alert("Passwords do not match!");
     return;
   }
 
-  // Prepare update data
   const updateData = {
     name,
     email,
     currentEmail: currentUser.email,
   };
 
-  // Only include password if user entered a new one
   if (password) {
     updateData.password = password;
   }
 
-  // Update profile image URL based on new name
   updateData.profileImage = `https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=${encodeURIComponent(name)}`;
 
   try {

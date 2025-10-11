@@ -28,7 +28,6 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       // Store user data in sessionStorage
       sessionStorage.setItem("user", JSON.stringify(data.user));
 
-      // Redirect to dashboard
       window.location.href = "/dashboard.html";
     } else {
       alert(data.message || "Login failed. Please check your credentials.");

@@ -1,6 +1,6 @@
 let currentUser = null;
 let currentPage = 1;
-let currentView = "all"; // 'all' or 'my'
+let currentView = "all"; // 'all' or 'my' or 'top'
 let isSearching = false;
 let hasMorePosts = true;
 
@@ -23,16 +23,13 @@ window.addEventListener("DOMContentLoaded", () => {
     currentUser.profileImage ||
     `https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=${encodeURIComponent(currentUser.name)}`;
 
-  // Initialize event listeners
   setupEventListeners();
 
-  // Load initial posts
   loadPosts();
 });
 
 // Set up all event listeners
 function setupEventListeners() {
-  // Logout
   document.getElementById("logoutBtn").addEventListener("click", () => {
     sessionStorage.removeItem("user");
     window.location.href = "/";
@@ -44,18 +41,28 @@ function setupEventListeners() {
 
   document.getElementById("userAvatar").style.cursor = "pointer";
 
-  // Create post
   document
     .getElementById("createPostBtn")
     .addEventListener("click", createPost);
 
-  // Toggle between all posts and my posts
+  document.getElementById("topRatedBtn").addEventListener("click", () => {
+    if (currentView !== "top") {
+      currentView = "top";
+      currentPage = 1;
+      document.getElementById("topRatedBtn").classList.add("active");
+      document.getElementById("allPostsBtn").classList.remove("active");
+      document.getElementById("myPostsBtn").classList.remove("active");
+      loadPosts();
+    }
+  });
+
   document.getElementById("allPostsBtn").addEventListener("click", () => {
     if (currentView !== "all") {
       currentView = "all";
       currentPage = 1;
       document.getElementById("allPostsBtn").classList.add("active");
       document.getElementById("myPostsBtn").classList.remove("active");
+      document.getElementById("topRatedBtn").classList.remove("active");
       loadPosts();
     }
   });
@@ -66,6 +73,7 @@ function setupEventListeners() {
       currentPage = 1;
       document.getElementById("myPostsBtn").classList.add("active");
       document.getElementById("allPostsBtn").classList.remove("active");
+      document.getElementById("topRatedBtn").classList.remove("active");
       loadPosts();
     }
   });
@@ -111,11 +119,9 @@ async function createPost() {
     const data = await response.json();
 
     if (data.success) {
-      // Clear form
       document.getElementById("postTitle").value = "";
       document.getElementById("postDescription").value = "";
 
-      // Reload posts
       currentPage = 1;
       loadPosts();
     } else {
@@ -137,6 +143,8 @@ async function loadPosts(append = false) {
 
     if (currentView === "my") {
       url = `/api/posts/my-posts?page=${currentPage}&userEmail=${currentUser.email}`;
+    } else if (currentView === "top") {
+      url = `/api/posts/top-rated?page=${currentPage}`;
     } else {
       url = `/api/posts?page=${currentPage}`;
     }
@@ -174,33 +182,93 @@ function displayPosts(posts, append = false) {
     postCard.dataset.postId = post._id;
 
     const postDate = new Date(post.date).toLocaleDateString();
+    const commentCount = Array.isArray(post.comments)
+      ? post.comments.length
+      : 0;
 
-    // Determine the number of comments.  Some posts may not have a
-    // comments array if none were ever added, so default to zero.
-    const commentCount = Array.isArray(post.comments) ? post.comments.length : 0;
+    const isOwner = post.userEmail === currentUser.email;
 
-    // Build the HTML for a post card, including stats for upvotes and
-    // comments.  Use simple glyphs (▲ for votes, 💬 for comments) to
-    // indicate the counts.  These counts encourage engagement by
-    // showing which posts are attracting discussion and feedback.
     postCard.innerHTML = `
-            <div class="post-title">${post.title}</div>
-            <div class="post-meta">
-                <span class="post-author">by ${post.userEmail.split("@")[0]}</span>
-                <span class="post-date">${postDate}</span>
-            </div>
-            <div class="post-stats">
-                <span class="post-votes">▲ ${post.votes || 0}</span>
-                <span class="post-comments">💬 ${commentCount}</span>
-            </div>
-        `;
+      <div class="post-header">
+        <div class="post-title">${post.title}</div>
+        ${
+          isOwner
+            ? `
+          <div class="post-actions">
+            <button class="btn-edit" data-id="${post._id}" title="Edit">✏️</button>
+            <button class="btn-delete" data-id="${post._id}" title="Delete">❌</button>
+          </div>
+        `
+            : ""
+        }
+      </div>
+      <div class="post-meta">
+        <span class="post-author">by ${post.userEmail.split("@")[0]}</span>
+        <span class="post-date">${postDate}</span>
+      </div>
+      <div class="post-stats">
+        <span class="post-votes">▲ ${post.votes || 0}</span>
+        <span class="post-comments">💬 ${commentCount}</span>
+      </div>
+    `;
 
-    postCard.addEventListener("click", () => {
-      window.location.href = `/post.html?id=${post._id}`;
+    postCard.addEventListener("click", (e) => {
+      if (!e.target.closest(".btn-edit") && !e.target.closest(".btn-delete")) {
+        window.location.href = `/post.html?id=${post._id}`;
+      }
     });
+
+    if (isOwner) {
+      const editBtn = postCard.querySelector(".btn-edit");
+      const deleteBtn = postCard.querySelector(".btn-delete");
+
+      editBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = `/editpost.html?id=${post._id}`;
+      });
+
+      deleteBtn?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deletePost(post._id);
+      });
+    }
 
     grid.appendChild(postCard);
   });
+}
+
+async function deletePost(postId) {
+  if (
+    !confirm(
+      "Are you sure you want to delete this post? This cannot be undone.",
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/posts/${postId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userEmail: currentUser.email,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      currentPage = 1;
+      loadPosts();
+    } else {
+      alert(data.message || "Failed to delete post");
+    }
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    alert("An error occurred while deleting the post");
+  }
 }
 
 // Search posts
@@ -224,7 +292,6 @@ async function searchPosts() {
       document.getElementById("clearSearchBtn").style.display = "block";
       document.getElementById("loadMoreBtn").style.display = "none";
 
-      // Show no posts message if no results
       document.getElementById("noPostsMessage").style.display =
         data.posts.length === 0 ? "block" : "none";
     }

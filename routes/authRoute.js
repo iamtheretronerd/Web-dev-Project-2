@@ -106,7 +106,7 @@ router.put("/update", async (req, res) => {
       });
     }
 
-    // Check if new email is already taken (if email is being changed)
+    // Check if new email is already taken
     if (email !== currentEmail) {
       const emailExists = await usersDB.findOne({ email });
       if (emailExists) {
@@ -125,9 +125,8 @@ router.put("/update", async (req, res) => {
       updatedAt: new Date(),
     };
 
-    // Only update password if provided
     if (password) {
-      updateData.password = password; // Should be hashed in production!
+      updateData.password = password;
     }
 
     // Update user

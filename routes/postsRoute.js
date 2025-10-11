@@ -5,12 +5,14 @@ import {
   getUserPosts,
   searchPosts,
   getPostById,
-  upvotePost,
   addCommentToPost,
-  upvoteComment,
   togglePostVote,
   toggleCommentVote,
   addReplyToComment,
+  deletePost,
+  updatePost,
+  getTopRatedPosts,
+  getTotalPostCount,
 } from "../db/postsDB.js";
 
 const router = express.Router();
@@ -63,6 +65,26 @@ router.get("/", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch posts",
+      error: error.message,
+    });
+  }
+});
+
+// Get total count of posts - GET /api/posts/count
+router.get("/count", async (req, res) => {
+  try {
+    const count = await getTotalPostCount();
+
+    res.json({
+      success: true,
+      count: count,
+      message: `Total posts in database: ${count}`,
+    });
+  } catch (error) {
+    console.error("Get post count error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch post count",
       error: error.message,
     });
   }
@@ -161,8 +183,6 @@ router.get("/single", async (req, res) => {
 });
 
 // Toggle upvote on a post - POST /api/posts/:id/upvote
-// Requires the user's email in the request body.  If the user has
-// previously upvoted the post, their vote is removed; otherwise it is added.
 router.post("/:id/upvote", async (req, res) => {
   try {
     const { id } = req.params;
@@ -233,8 +253,6 @@ router.post("/:postId/comments", async (req, res) => {
 });
 
 // Toggle upvote on a comment - POST /api/posts/:postId/comments/:commentId/upvote
-// Requires the user's email in the request body.  If the user has
-// previously upvoted the comment, their vote is removed, otherwise it is added.
 router.post("/:postId/comments/:commentId/upvote", async (req, res) => {
   try {
     const { postId, commentId } = req.params;
@@ -274,25 +292,130 @@ router.post("/:postId/comments/:commentId/upvote", async (req, res) => {
 });
 
 // Add a reply to a comment - POST /api/posts/:postId/comments/:commentId/replies
-// Requires the user's email and reply text in the request body.
 router.post("/:postId/comments/:commentId/replies", async (req, res) => {
   try {
     const { postId, commentId } = req.params;
     const { userEmail, text } = req.body;
     if (!postId || !commentId) {
-      return res.status(400).json({ success: false, message: "Post ID and comment ID are required" });
+      return res.status(400).json({
+        success: false,
+        message: "Post ID and comment ID are required",
+      });
     }
     if (!userEmail || !text) {
-      return res.status(400).json({ success: false, message: "User email and text are required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "User email and text are required" });
     }
-    const result = await addReplyToComment(postId, commentId, { userEmail, text });
+    const result = await addReplyToComment(postId, commentId, {
+      userEmail,
+      text,
+    });
     if (!result || result.matchedCount === 0) {
-      return res.status(404).json({ success: false, message: "Post or comment not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Post or comment not found" });
     }
     return res.json({ success: true, message: "Reply added successfully" });
   } catch (error) {
     console.error("Add reply error:", error);
-    res.status(500).json({ success: false, message: "Failed to add reply", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to add reply",
+      error: error.message,
+    });
+  }
+});
+
+// Update a post - PUT /api/posts/:id
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, userEmail } = req.body;
+
+    if (!title || !description || !userEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Title, description, and user email are required",
+      });
+    }
+
+    const result = await updatePost(id, userEmail, { title, description });
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found or you don't have permission to edit",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Post updated successfully",
+    });
+  } catch (error) {
+    console.error("Update post error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update post",
+      error: error.message,
+    });
+  }
+});
+
+// Delete a post - DELETE /api/posts/:id
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userEmail } = req.body;
+
+    if (!userEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "User email is required",
+      });
+    }
+
+    const result = await deletePost(id, userEmail);
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found or you don't have permission to delete",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Post deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete post error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete post",
+      error: error.message,
+    });
+  }
+});
+
+// Get top-rated posts - GET /api/posts/top-rated?page=1
+router.get("/top-rated", async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const result = await getTopRatedPosts(page);
+
+    res.json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    console.error("Get top rated posts error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch top rated posts",
+      error: error.message,
+    });
   }
 });
 

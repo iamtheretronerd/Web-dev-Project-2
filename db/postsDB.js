@@ -249,9 +249,7 @@ export const toggleCommentVote = async (postId, commentId, userEmail) => {
       return { upvoted: false };
     }
 
-    // If no vote was removed, attempt to add the user's vote to the
-    // specified comment. Only match elements where the user is not
-    // already in the voters array.
+    // If no vote was removed, attempt to add the user's vote to the specified comment.
     result = await collection.updateOne(
       { _id: new ObjectId(postId) },
       {
@@ -291,7 +289,11 @@ export const toggleCommentVote = async (postId, commentId, userEmail) => {
  * @param {object} replyFields An object with userEmail and text
  * @returns {object} The result of the updateOne operation
  */
-export const addReplyToComment = async (postId, commentId, { userEmail, text }) => {
+export const addReplyToComment = async (
+  postId,
+  commentId,
+  { userEmail, text },
+) => {
   const { client, collection } = await postsDB.connect();
   try {
     const replyComment = {
@@ -306,14 +308,91 @@ export const addReplyToComment = async (postId, commentId, { userEmail, text }) 
     const result = await collection.updateOne(
       {
         _id: new ObjectId(postId),
-        // ensure the comment being replied to exists
         "comments.commentId": new ObjectId(commentId),
       },
       {
         $push: { comments: replyComment },
-      }
+      },
     );
     return result;
+  } finally {
+    await client.close();
+  }
+};
+
+// Update a post
+export const updatePost = async (postId, userEmail, updateData) => {
+  const { client, collection } = await postsDB.connect();
+
+  try {
+    // Only update if the user owns the post
+    const result = await collection.updateOne(
+      {
+        _id: new ObjectId(postId),
+        userEmail: userEmail, // Ensure ownership
+      },
+      {
+        $set: {
+          ...updateData,
+          updatedAt: new Date(),
+        },
+      },
+    );
+
+    return result.modifiedCount > 0 ? result : null;
+  } finally {
+    await client.close();
+  }
+};
+
+// Delete a post
+export const deletePost = async (postId, userEmail) => {
+  const { client, collection } = await postsDB.connect();
+  try {
+    const result = await collection.deleteOne({
+      _id: ObjectId.createFromHexString(postId),
+      userEmail: userEmail, // Ensure ownership
+    });
+    return result.deletedCount > 0 ? result : null;
+  } finally {
+    await client.close();
+  }
+};
+
+// Get top-rated posts sorted by votes
+export const getTopRatedPosts = async (page = 1, limit = 20) => {
+  const { client, collection } = await postsDB.connect();
+
+  try {
+    const skip = (page - 1) * limit;
+
+    // Sort by votes in descending order
+    const posts = await collection
+      .find({})
+      .sort({ votes: -1, date: -1 })
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const totalCount = await collection.countDocuments({});
+
+    return {
+      posts,
+      hasMore: skip + posts.length < totalCount,
+      totalCount,
+    };
+  } finally {
+    await client.close();
+  }
+};
+
+// Get total count of posts in database
+export const getTotalPostCount = async () => {
+  const { client, collection } = await postsDB.connect();
+
+  try {
+    const count = await collection.countDocuments({});
+    return count;
   } finally {
     await client.close();
   }

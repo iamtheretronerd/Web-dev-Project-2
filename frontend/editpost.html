@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Post - 9th Seat</title>
+    <link rel="stylesheet" href="css/editpost.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <button id="backBtn" class="btn-back">← Back to Dashboard</button>
+        <h2>Edit Post</h2>
+      </div>
+
+      <div class="edit-container">
+        <div id="loadingMessage" class="loading">Loading post...</div>
+
+        <form id="editPostForm" style="display: none">
+          <div class="form-group">
+            <label for="postTitle">Title:</label>
+            <input
+              type="text"
+              id="postTitle"
+              name="postTitle"
+              maxlength="100"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="postDescription">Description:</label>
+            <textarea
+              id="postDescription"
+              name="postDescription"
+              rows="8"
+              required
+            ></textarea>
+          </div>
+
+          <div class="button-group">
+            <button type="button" id="cancelBtn" class="btn-cancel">
+              Cancel
+            </button>
+            <button type="submit" class="btn-save">Save Changes</button>
+          </div>
+        </form>
+
+        <div id="errorMessage" class="error-message" style="display: none">
+          Failed to load post. Please try again.
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="js/editpost.js"></script>
+  </body>
+</html>

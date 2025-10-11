@@ -109,8 +109,6 @@ function displayPost() {
   // Set vote count
   document.getElementById("voteCount").textContent = currentPost.votes || 0;
 
-  // Toggle upvoted state on the post's upvote button based on whether
-  // the current user's email is present in the post's voters array
   const upvoteBtn = document.getElementById("upvoteBtn");
   if (currentPost.voters && currentPost.voters.includes(currentUser.email)) {
     upvoteBtn.classList.add("upvoted");
@@ -126,9 +124,10 @@ function displayPost() {
 function displayComments() {
   if (!commentsList) return;
   commentsList.innerHTML = "";
-  const comments = currentPost && Array.isArray(currentPost.comments)
-    ? currentPost.comments
-    : [];
+  const comments =
+    currentPost && Array.isArray(currentPost.comments)
+      ? currentPost.comments
+      : [];
   if (!comments || comments.length === 0) {
     const li = document.createElement("li");
     li.className = "no-comments";
@@ -136,8 +135,7 @@ function displayComments() {
     commentsList.appendChild(li);
     return;
   }
-  // Build a comment tree from the flat comments array.  Each comment
-  // will have a children array containing its direct replies.
+  // Build a comment tree from the flat comments array.
   const roots = buildCommentTree(comments);
   roots.forEach((root) => {
     // Pass depth parameter (0 for root) when rendering comments
@@ -145,6 +143,7 @@ function displayComments() {
   });
 }
 
+// Build a tree structure from flat comments array
 function buildCommentTree(comments) {
   const map = new Map();
   const roots = [];
@@ -166,17 +165,7 @@ function buildCommentTree(comments) {
   return roots;
 }
 
-/**
- * Recursively render a comment and its children into the DOM. Each
- * comment is rendered inside an <li> element with the comment-item
- * class. Children comments are rendered below the parent inside
- * a nested <ul> with the replies-list class. A toggle button
- * collapses deep reply chains (depth >= 3) by default.
- *
- * @param {object} comment The comment object to render
- * @param {HTMLElement} container The DOM element (ul) to append this comment into
- * @param {number} depth The current depth of this comment in the thread
- */
+// Render a single comment and its children recursively
 function renderComment(comment, container, depth = 0) {
   const li = document.createElement("li");
   li.className = "comment-item";
@@ -189,29 +178,14 @@ function renderComment(comment, container, depth = 0) {
   const upvoteBtn = document.createElement("button");
   upvoteBtn.className = "comment-upvote-btn";
   upvoteBtn.innerHTML = `<span class="comment-vote-icon">▲</span> <span class="comment-vote-count">${comment.votes || 0}</span>`;
-  if (Array.isArray(comment.voters) && comment.voters.includes(currentUser.email)) {
+  if (
+    Array.isArray(comment.voters) &&
+    comment.voters.includes(currentUser.email)
+  ) {
     upvoteBtn.classList.add("upvoted");
   }
   upvoteBtn.addEventListener("click", () => {
     upvoteComment(comment.commentId);
-    // Comment text
-    const textDiv = document.createElement("div");
-    textDiv.className = "comment-text";
-    textDiv.textContent = comment.text;
-
-    // Comment meta (author and date)
-    const metaDiv = document.createElement("div");
-    metaDiv.className = "comment-meta";
-    const author = comment.userEmail
-      ? comment.userEmail.split("@")[0]
-      : "Anonymous";
-    const date = new Date(comment.date);
-    metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
-
-    li.appendChild(upvoteBtn);
-    li.appendChild(textDiv);
-    li.appendChild(metaDiv);
-    commentsList.appendChild(li);
   });
 
   // Comment content container
@@ -227,7 +201,9 @@ function renderComment(comment, container, depth = 0) {
   // Comment meta (author and date)
   const metaDiv = document.createElement("div");
   metaDiv.className = "comment-meta";
-  const author = comment.userEmail ? comment.userEmail.split("@")[0] : "Anonymous";
+  const author = comment.userEmail
+    ? comment.userEmail.split("@")[0]
+    : "Anonymous";
   const date = new Date(comment.date);
   metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
   contentDiv.appendChild(metaDiv);
@@ -252,11 +228,14 @@ function renderComment(comment, container, depth = 0) {
     const text = replyTextarea.value.trim();
     if (!text) return;
     try {
-      const resp = await fetch(`/api/posts/${postId}/comments/${comment.commentId}/replies`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail: currentUser.email, text }),
-      });
+      const resp = await fetch(
+        `/api/posts/${postId}/comments/${comment.commentId}/replies`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userEmail: currentUser.email, text }),
+        },
+      );
       const resData = await resp.json();
       if (resData.success) {
         replyTextarea.value = "";
@@ -274,7 +253,8 @@ function renderComment(comment, container, depth = 0) {
   replySection.appendChild(replySubmit);
 
   replyBtn.addEventListener("click", () => {
-    replySection.style.display = replySection.style.display === "none" ? "block" : "none";
+    replySection.style.display =
+      replySection.style.display === "none" ? "block" : "none";
   });
 
   contentDiv.appendChild(replySection);
@@ -319,16 +299,7 @@ function renderComment(comment, container, depth = 0) {
   container.appendChild(li);
 }
 
-/**
- * Convert an ObjectId-like value into a string. MongoDB's driver
- * serializes ObjectId values as objects with a `$oid` key when
- * returning JSON. To build map keys correctly, we extract the
- * underlying string representation. If the input is already a
- * string, it is returned unchanged.
- *
- * @param {any} id The id value from the document
- * @returns {string} A string representation of the id
- */
+// Utility to convert various ID formats to string
 function idToString(id) {
   if (!id) return "";
   if (typeof id === "string") return id;

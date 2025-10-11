@@ -12,7 +12,7 @@ body {
 }
 
 .container {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
@@ -48,69 +48,58 @@ h2 {
   margin: 0;
 }
 
-.profile-container {
+.edit-container {
   background-color: white;
   padding: 40px;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.avatar-section {
+.loading {
   text-align: center;
-  margin-bottom: 30px;
-}
-
-.avatar-preview {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 15px;
-  border: 3px solid #ddd;
-  border-radius: 50%;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.avatar-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.avatar-note {
   color: #666;
-  font-size: 14px;
-  font-style: italic;
+  font-size: 18px;
+  padding: 40px;
+}
+
+.error-message {
+  text-align: center;
+  color: #dc3545;
+  font-size: 18px;
+  padding: 40px;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   color: #555;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
 }
 
-input {
+input[type="text"],
+textarea {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 16px;
+  font-family: Arial, sans-serif;
 }
 
-input:focus {
+textarea {
+  resize: vertical;
+  min-height: 150px;
+}
+
+input:focus,
+textarea:focus {
   outline: none;
   border-color: #007bff;
-}
-
-input::placeholder {
-  color: #999;
 }
 
 .button-group {
@@ -123,7 +112,7 @@ input::placeholder {
 .btn-save {
   flex: 1;
   padding: 12px;
-  font-size: 16;
+  font-size: 16px;
   border-radius: 5px;
   border: none;
   cursor: pointer;
