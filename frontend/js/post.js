@@ -148,10 +148,10 @@ function displayComments() {
 }
 
 /**
- * Construct a hierarchical tree of comments from a flat array.  Each
+ * Construct a hierarchical tree of comments from a flat array. Each
  * comment must have a unique commentId and may have a parentId that
- * references the commentId of its parent.  Top-level comments have
- * parentId equal to null.  The returned list contains all root
+ * references the commentId of its parent. Top-level comments have
+ * parentId equal to null. The returned list contains all root
  * comments with their children recursively attached.
  *
  * @param {Array} comments Array of comment objects from the server
@@ -183,10 +183,10 @@ function buildCommentTree(comments) {
 }
 
 /**
- * Recursively render a comment and its children into the DOM.  Each
+ * Recursively render a comment and its children into the DOM. Each
  * comment is rendered inside an <li> element with the comment-item
- * class.  Children comments are rendered below the parent inside
- * a nested <ul> with the replies-list class.  A toggle button
+ * class. Children comments are rendered below the parent inside
+ * a nested <ul> with the replies-list class. A toggle button
  * collapses deep reply chains (depth >= 3) by default.
  *
  * @param {object} comment The comment object to render
@@ -287,7 +287,7 @@ function renderComment(comment, container, depth = 0) {
     // Create a container for replies
     const childList = document.createElement("ul");
     childList.className = "replies-list";
-    // If depth >= 2, collapse the thread by default and show a toggle
+    // If depth >= 3, collapse the thread by default and show a toggle
     let collapsed = depth >= 3;
     if (collapsed) {
       childList.style.display = "none";
@@ -318,10 +318,10 @@ function renderComment(comment, container, depth = 0) {
 }
 
 /**
- * Convert an ObjectId-like value into a string.  MongoDB's driver
+ * Convert an ObjectId-like value into a string. MongoDB's driver
  * serializes ObjectId values as objects with a `$oid` key when
- * returning JSON.  To build map keys correctly, we extract the
- * underlying string representation.  If the input is already a
+ * returning JSON. To build map keys correctly, we extract the
+ * underlying string representation. If the input is already a
  * string, it is returned unchanged.
  *
  * @param {any} id The id value from the document
@@ -331,7 +331,6 @@ function idToString(id) {
   if (!id) return "";
   if (typeof id === "string") return id;
   if (typeof id === "object" && "$oid" in id) return id.$oid;
-  // Last resort: call toString on the object
   return id.toString();
 }
 

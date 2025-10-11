@@ -200,9 +200,6 @@ router.post("/:postId/comments", async (req, res) => {
       return res.status(400).json({ success: false, message: "User email and text are required" });
     }
     const result = await addCommentToPost(postId, { userEmail, text });
-    // Use matchedCount instead of modifiedCount because pushing to a
-    // potentially undefined array will not always increment modifiedCount.
-    // matchedCount indicates whether a document with the given ID exists.
     if (!result || result.matchedCount === 0) {
       return res.status(404).json({ success: false, message: "Post not found" });
     }
@@ -215,7 +212,7 @@ router.post("/:postId/comments", async (req, res) => {
 
 // Toggle upvote on a comment - POST /api/posts/:postId/comments/:commentId/upvote
 // Requires the user's email in the request body.  If the user has
-// previously upvoted the comment, their vote is removed; otherwise it is added.
+// previously upvoted the comment, their vote is removed, otherwise it is added.
 router.post("/:postId/comments/:commentId/upvote", async (req, res) => {
   try {
     const { postId, commentId } = req.params;

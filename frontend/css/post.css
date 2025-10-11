@@ -225,10 +225,7 @@ body {
   padding-top: 10px;
 }
 
-/* Each comment item is a block with a bottom border.  The layout of its
-   contents (upvote button and comment content) is handled by
-   .comment-row.  Do not use flex here so that nested reply lists
-   appear below rather than beside the comment row. */
+/* Each comment item is a block with a bottom border. */
 .comment-item {
   padding: 10px 0;
   border-bottom: 1px solid #eee;
@@ -236,7 +233,7 @@ body {
   margin-bottom: 10px;
 }
 
-/* Row containing the upvote button and the comment content.  This
+/* Row containing the upvote button and the comment content. This
    row uses flexbox to lay out the vote button and content
    horizontally. */
 .comment-row {
@@ -245,8 +242,8 @@ body {
   gap: 10px;
 }
 
-/* Container for the comment text, meta, reply button and form.  Use
-   flex-direction: column so elements stack vertically. */
+/* Container for the comment text, meta, reply button and form. Use
+   flex direction column so elements stack vertically. */
 .comment-content {
   flex: 1;
   display: flex;
@@ -295,14 +292,9 @@ body {
    border to visually connect reply threads. */
 .replies-list {
   list-style: none;
-  /* Keep nested replies aligned with the comment container by
-     removing the margin-left.  Use padding-left to create a
-     slight indent inside the comment box and draw a vertical
-     line to connect replies. */
   margin-left: 0;
   padding-left: 20px;
   border-left: 2px solid #ddd;
-  /* Add top margin so nested replies appear below their parent comment */
   margin-top: 10px;
 }
 
