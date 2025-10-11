@@ -2,7 +2,6 @@ let currentUser = null;
 let currentPost = null;
 let postId = null;
 
-// References to comment-related DOM elements
 let commentForm = null;
 let commentText = null;
 let commentsList = null;
