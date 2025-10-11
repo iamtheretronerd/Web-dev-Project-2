@@ -38,6 +38,12 @@ function setupEventListeners() {
     window.location.href = "/";
   });
 
+  document.getElementById("userAvatar").addEventListener("click", () => {
+    window.location.href = "/user.html";
+  });
+
+  document.getElementById("userAvatar").style.cursor = "pointer";
+
   // Create post
   document
     .getElementById("createPostBtn")
@@ -64,18 +70,15 @@ function setupEventListeners() {
     }
   });
 
-  // Search
   document.getElementById("searchBtn").addEventListener("click", searchPosts);
   document.getElementById("searchInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") searchPosts();
   });
 
-  // Clear search
   document
     .getElementById("clearSearchBtn")
     .addEventListener("click", clearSearch);
 
-  // Load more
   document.getElementById("loadMoreBtn").addEventListener("click", () => {
     currentPage++;
     loadPosts(true);
@@ -145,7 +148,6 @@ async function loadPosts(append = false) {
       displayPosts(data.posts, append);
       hasMorePosts = data.hasMore;
 
-      // Show/hide load more button
       document.getElementById("loadMoreBtn").style.display = hasMorePosts
         ? "block"
         : "none";

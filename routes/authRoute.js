@@ -91,4 +91,70 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Update user profile - PUT /api/auth/update
+router.put("/update", async (req, res) => {
+  try {
+    const { name, email, password, currentEmail, profileImage } = req.body;
+
+    // Find user by current email
+    const user = await usersDB.findOne({ email: currentEmail });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check if new email is already taken (if email is being changed)
+    if (email !== currentEmail) {
+      const emailExists = await usersDB.findOne({ email });
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already in use",
+        });
+      }
+    }
+
+    // Prepare update object
+    const updateData = {
+      name,
+      email,
+      profileImage,
+      updatedAt: new Date(),
+    };
+
+    // Only update password if provided
+    if (password) {
+      updateData.password = password; // Should be hashed in production!
+    }
+
+    // Update user
+    const result = await usersDB.updateDocument(
+      { email: currentEmail },
+      updateData,
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No changes were made",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update profile",
+      error: error.message,
+    });
+  }
+});
+
 export default router;

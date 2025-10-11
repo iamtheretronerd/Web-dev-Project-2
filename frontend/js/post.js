@@ -2,7 +2,6 @@ let currentUser = null;
 let currentPost = null;
 let postId = null;
 
-// References to comment-related DOM elements
 let commentForm = null;
 let commentText = null;
 let commentsList = null;
@@ -126,7 +125,6 @@ function displayPost() {
 // Render the comments associated with the current post
 function displayComments() {
   if (!commentsList) return;
-  // Clear existing comments
   commentsList.innerHTML = "";
   const comments = currentPost && Array.isArray(currentPost.comments)
     ? currentPost.comments
@@ -147,28 +145,14 @@ function displayComments() {
   });
 }
 
-/**
- * Construct a hierarchical tree of comments from a flat array. Each
- * comment must have a unique commentId and may have a parentId that
- * references the commentId of its parent. Top-level comments have
- * parentId equal to null. The returned list contains all root
- * comments with their children recursively attached.
- *
- * @param {Array} comments Array of comment objects from the server
- * @returns {Array} Array of root comments with children
- */
 function buildCommentTree(comments) {
   const map = new Map();
   const roots = [];
-  // Initialize the map with all comments and set up an empty children array
   comments.forEach((comment) => {
-    // Ensure we work with a shallow copy to avoid mutating the original
-    // objects, and convert commentId/parentId to strings for map keys.
     const cid = idToString(comment.commentId);
     const pid = comment.parentId ? idToString(comment.parentId) : null;
     map.set(cid, { ...comment, commentId: cid, parentId: pid, children: [] });
   });
-  // Build the tree by linking children to their parents
   map.forEach((comment) => {
     if (!comment.parentId) {
       roots.push(comment);
@@ -210,6 +194,24 @@ function renderComment(comment, container, depth = 0) {
   }
   upvoteBtn.addEventListener("click", () => {
     upvoteComment(comment.commentId);
+    // Comment text
+    const textDiv = document.createElement("div");
+    textDiv.className = "comment-text";
+    textDiv.textContent = comment.text;
+
+    // Comment meta (author and date)
+    const metaDiv = document.createElement("div");
+    metaDiv.className = "comment-meta";
+    const author = comment.userEmail
+      ? comment.userEmail.split("@")[0]
+      : "Anonymous";
+    const date = new Date(comment.date);
+    metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
+
+    li.appendChild(upvoteBtn);
+    li.appendChild(textDiv);
+    li.appendChild(metaDiv);
+    commentsList.appendChild(li);
   });
 
   // Comment content container
@@ -386,17 +388,23 @@ async function upvoteCurrentPost() {
 // Upvote a specific comment by its commentId
 async function upvoteComment(commentId) {
   try {
-    const response = await fetch(`/api/posts/${postId}/comments/${commentId}/upvote`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userEmail: currentUser.email }),
-    });
+    const response = await fetch(
+      `/api/posts/${postId}/comments/${commentId}/upvote`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail: currentUser.email }),
+      },
+    );
     const data = await response.json();
     if (data.success) {
       // Refresh the post to update comment vote counts and button states
       await loadPost();
     } else {
-      console.error("Failed to toggle comment vote:", data.message || data.error);
+      console.error(
+        "Failed to toggle comment vote:",
+        data.message || data.error,
+      );
       alert(data.message || "Failed to toggle comment vote");
     }
   } catch (error) {

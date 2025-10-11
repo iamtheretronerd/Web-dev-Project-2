@@ -106,7 +106,7 @@ export const upvotePost = async (postId, userEmail) => {
       {
         $inc: { votes: 1 },
         $push: { voters: userEmail },
-      }
+      },
     );
     return result;
   } finally {
@@ -141,7 +141,7 @@ export const addCommentToPost = async (postId, { userEmail, text }) => {
     };
     const result = await collection.updateOne(
       { _id: new ObjectId(postId) },
-      { $push: { comments: comment } }
+      { $push: { comments: comment } },
     );
     return result;
   } finally {
@@ -162,8 +162,11 @@ export const upvoteComment = async (postId, commentId) => {
   const { client, collection } = await postsDB.connect();
   try {
     const result = await collection.updateOne(
-      { _id: new ObjectId(postId), "comments.commentId": new ObjectId(commentId) },
-      { $inc: { "comments.$.votes": 1 } }
+      {
+        _id: new ObjectId(postId),
+        "comments.commentId": new ObjectId(commentId),
+      },
+      { $inc: { "comments.$.votes": 1 } },
     );
     return result;
   } finally {
@@ -187,7 +190,7 @@ export const togglePostVote = async (postId, userEmail) => {
     // documents where the voters array contains the email.
     let result = await collection.updateOne(
       { _id: new ObjectId(postId), voters: userEmail },
-      { $inc: { votes: -1 }, $pull: { voters: userEmail } }
+      { $inc: { votes: -1 }, $pull: { voters: userEmail } },
     );
     if (result.modifiedCount === 1) {
       return { upvoted: false };
@@ -196,7 +199,7 @@ export const togglePostVote = async (postId, userEmail) => {
     // documents where the email is not already present.
     result = await collection.updateOne(
       { _id: new ObjectId(postId), voters: { $ne: userEmail } },
-      { $inc: { votes: 1 }, $push: { voters: userEmail } }
+      { $inc: { votes: 1 }, $push: { voters: userEmail } },
     );
     if (result.modifiedCount === 1) {
       return { upvoted: true };
@@ -239,7 +242,7 @@ export const toggleCommentVote = async (postId, commentId, userEmail) => {
             "elem.voters": userEmail,
           },
         ],
-      }
+      },
     );
     if (result.modifiedCount === 1) {
       // Vote removed
@@ -262,7 +265,7 @@ export const toggleCommentVote = async (postId, commentId, userEmail) => {
             "elem.voters": { $ne: userEmail },
           },
         ],
-      }
+      },
     );
     if (result.modifiedCount === 1) {
       return { upvoted: true };
