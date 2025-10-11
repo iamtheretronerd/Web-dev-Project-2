@@ -161,6 +161,10 @@ This project used **GenAI tools** (ChatGPT / GPT-5) for:
 
 > “Review my code file for semantic structure, accessibility issues, and best practices.”
 
+**The below prompt is used in the API to generate AI-based idea**
+
+> "Based on the original idea and the community's devil's advocate critiques, suggest ONE specific, actionable improvement or pivot for this project. Keep your suggestion concise (2-3 sentences) and practical. Focus on addressing the main concerns raised while preserving the core value of the original idea. If there is no enough information or critiques, suggest a general improvement"
+
 **Validation:**  
 All outputs were manually reviewed, iterated, and integrated **only after confirming**:
 
