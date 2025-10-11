@@ -159,7 +159,7 @@ body {
   color: white;
 }
 
-/* When the upvote button is disabled because the user has already voted,
+/* When the upvote button is disabled (because the user has already voted),
    reduce opacity and cursor to indicate it's inactive */
 .btn-upvote:disabled {
   opacity: 0.6;
@@ -175,6 +175,8 @@ body {
 }
 
 /* Comments Container */
+/* Comments container shares the same styling as the post card via the
+   `post-container` class.  Only set a top margin here. */
 .comments-container {
   margin-top: 40px;
 }
@@ -223,12 +225,30 @@ body {
   padding-top: 10px;
 }
 
+/* Each comment item is a block with a bottom border. */
 .comment-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  /* Add some vertical spacing between comments */
+  margin-bottom: 10px;
+}
+
+/* Row containing the upvote button and the comment content. This
+   row uses flexbox to lay out the vote button and content
+   horizontally. */
+.comment-row {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+}
+
+/* Container for the comment text, meta, reply button and form. Use
+   flex direction column so elements stack vertically. */
+.comment-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .comment-upvote-btn {
@@ -253,14 +273,104 @@ body {
   font-weight: bold;
 }
 
+/* Comment text occupies full width within the content container */
 .comment-text {
-  flex: 1;
   font-size: 16px;
   color: #333;
+  word-wrap: break-word;
 }
 
+/* Meta information (author and date) appears after the text */
 .comment-meta {
   font-size: 12px;
   color: #888;
-  margin-top: 4px;
+  margin-top: 0;
+}
+
+/* Reply threads */
+/* Nested replies list.  Indent nested comments and add a subtle
+   border to visually connect reply threads. */
+.replies-list {
+  list-style: none;
+  margin-left: 0;
+  padding-left: 20px;
+  border-left: 2px solid #ddd;
+  margin-top: 10px;
+}
+
+.reply-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.reply-text {
+  flex: 1;
+  font-size: 15px;
+  color: #333;
+}
+
+.reply-meta {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* Reply button under a comment */
+.comment-reply-btn {
+  margin-top: 6px;
+  background-color: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.comment-reply-btn:hover {
+  text-decoration: underline;
+}
+
+/* Reply form section */
+.reply-section {
+  margin-top: 10px;
+}
+
+.reply-textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: vertical;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.btn-reply {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn-reply:hover {
+  background-color: #218838;
+}
+
+/* Toggle button to show or hide deep reply chains.  Appears under
+   comments with children at depth >= 3. */
+.reply-toggle-btn {
+  background-color: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.reply-toggle-btn:hover {
+  text-decoration: underline;
 }

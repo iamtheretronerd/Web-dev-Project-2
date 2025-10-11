@@ -210,6 +210,22 @@ h1 {
   align-items: center;
 }
 
+/* Display vote and comment counts below each post.  Use a flex
+   container to align the counters horizontally with a small gap. */
+.post-stats {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+  color: #007bff;
+  font-size: 14px;
+}
+
+.post-stats span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .post-author {
   font-style: italic;
 }

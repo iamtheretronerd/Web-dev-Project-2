@@ -115,10 +115,10 @@ export const upvotePost = async (postId, userEmail) => {
 };
 
 /**
- * Append a new comment to the comments array of a post. Each comment
+ * Append a new comment to the comments array of a post.  Each comment
  * receives its own commentId, author, text, timestamp, vote count and
  * empty replies array. The $push operator will create the comments
- * array if it doesn't exist【796652227629499†L102-L106.
+ * array if it doesn't exist【796652227629499†L102-L106】.
  *
  * @param {string} postId The ID of the post to add a comment to
  * @param {object} commentFields An object with userEmail and text
@@ -126,16 +126,18 @@ export const upvotePost = async (postId, userEmail) => {
 export const addCommentToPost = async (postId, { userEmail, text }) => {
   const { client, collection } = await postsDB.connect();
   try {
+    // Top‑level comments have parentId set to null.  Each comment has
+    // its own commentId and tracks voters for upvote toggling. Replies
+    // are stored as separate comments with a parentId referencing the
+    // comment being replied to.
     const comment = {
       commentId: new ObjectId(),
+      parentId: null,
       userEmail,
       text,
       date: new Date(),
       votes: 0,
-      // track voters for each comment so that users can only upvote
-      // a comment once and can toggle their vote
       voters: [],
-      replies: [],
     };
     const result = await collection.updateOne(
       { _id: new ObjectId(postId) },
@@ -173,9 +175,9 @@ export const upvoteComment = async (postId, commentId) => {
 };
 
 /**
- * Toggle a user's vote on a post.  If the user has already voted, the
- * vote is removed and the vote count is decremented.  Otherwise, the
- * vote is added and the count incremented.  Returns an object
+ * Toggle a user's vote on a post. If the user has already voted, the
+ * vote is removed and the vote count is decremented. Otherwise, the
+ * vote is added and the count incremented. Returns an object
  * indicating whether the post is now upvoted by the user.
  *
  * @param {string} postId The post ID
@@ -184,7 +186,7 @@ export const upvoteComment = async (postId, commentId) => {
 export const togglePostVote = async (postId, userEmail) => {
   const { client, collection } = await postsDB.connect();
   try {
-    // First attempt to remove the user's vote.  This only matches
+    // First attempt to remove the user's vote. This only matches
     // documents where the voters array contains the email.
     let result = await collection.updateOne(
       { _id: new ObjectId(postId), voters: userEmail },
@@ -193,7 +195,7 @@ export const togglePostVote = async (postId, userEmail) => {
     if (result.modifiedCount === 1) {
       return { upvoted: false };
     }
-    // If no vote was removed, try to add a new vote.  Only matches
+    // If no vote was removed, try to add a new vote. Only matches
     // documents where the email is not already present.
     result = await collection.updateOne(
       { _id: new ObjectId(postId), voters: { $ne: userEmail } },
@@ -202,7 +204,7 @@ export const togglePostVote = async (postId, userEmail) => {
     if (result.modifiedCount === 1) {
       return { upvoted: true };
     }
-    // If still no change, the post may not exist.  Return null.
+    // If still no change, the post may not exist. Return null.
     return null;
   } finally {
     await client.close();
@@ -243,7 +245,7 @@ export const toggleCommentVote = async (postId, commentId, userEmail) => {
       },
     );
     if (result.modifiedCount === 1) {
-      // Vote removed (unvoted)
+      // Vote removed
       return { upvoted: false };
     }
 
@@ -270,6 +272,48 @@ export const toggleCommentVote = async (postId, commentId, userEmail) => {
     }
     // If no match found, return null (comment may not exist)
     return null;
+  } finally {
+    await client.close();
+  }
+};
+
+/**
+ * Add a reply to a specific comment within a post.  Replies are
+ * stored in the same `comments` array as top‑level comments rather
+ * than as nested `replies` arrays.  Each reply sets its `parentId`
+ * to the `commentId` of the comment it is replying to. This flat
+ * structure allows for unlimited nesting without deeply nested
+ * arrays. Each reply has its own `commentId`, author, text,
+ * timestamp, vote count, and `voters` array.
+ *
+ * @param {string} postId The parent post ID
+ * @param {string} commentId The ID of the comment to which to add a reply
+ * @param {object} replyFields An object with userEmail and text
+ * @returns {object} The result of the updateOne operation
+ */
+export const addReplyToComment = async (postId, commentId, { userEmail, text }) => {
+  const { client, collection } = await postsDB.connect();
+  try {
+    const replyComment = {
+      commentId: new ObjectId(),
+      parentId: new ObjectId(commentId),
+      userEmail,
+      text,
+      date: new Date(),
+      votes: 0,
+      voters: [],
+    };
+    const result = await collection.updateOne(
+      {
+        _id: new ObjectId(postId),
+        // ensure the comment being replied to exists
+        "comments.commentId": new ObjectId(commentId),
+      },
+      {
+        $push: { comments: replyComment },
+      }
+    );
+    return result;
   } finally {
     await client.close();
   }

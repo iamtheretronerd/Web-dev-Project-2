@@ -175,11 +175,23 @@ function displayPosts(posts, append = false) {
 
     const postDate = new Date(post.date).toLocaleDateString();
 
+    // Determine the number of comments.  Some posts may not have a
+    // comments array if none were ever added, so default to zero.
+    const commentCount = Array.isArray(post.comments) ? post.comments.length : 0;
+
+    // Build the HTML for a post card, including stats for upvotes and
+    // comments.  Use simple glyphs (▲ for votes, 💬 for comments) to
+    // indicate the counts.  These counts encourage engagement by
+    // showing which posts are attracting discussion and feedback.
     postCard.innerHTML = `
             <div class="post-title">${post.title}</div>
             <div class="post-meta">
                 <span class="post-author">by ${post.userEmail.split("@")[0]}</span>
                 <span class="post-date">${postDate}</span>
+            </div>
+            <div class="post-stats">
+                <span class="post-votes">▲ ${post.votes || 0}</span>
+                <span class="post-comments">💬 ${commentCount}</span>
             </div>
         `;
 
