@@ -17,6 +17,10 @@ import {
 
 const router = express.Router();
 
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI(process.env.GEMINI_API_KEY);
+
 // Create a new post - POST /api/posts
 router.post("/", async (req, res) => {
   try {
@@ -45,6 +49,58 @@ router.post("/", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to create post",
+      error: error.message,
+    });
+  }
+});
+
+// Generate AI suggestion for a post - GET /api/posts/:id/ai-suggestion
+router.get("/:id/ai-suggestion", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Get the post with comments
+    const post = await getPostById(id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Prepare context for AI
+    const commentsSummary =
+      post.comments && post.comments.length > 0
+        ? post.comments.map((c) => c.text).join("\n")
+        : "No comments yet";
+
+    const prompt = `You are an innovation consultant analyzing a project idea and its critiques.
+
+Project Title: ${post.title}
+Project Description: ${post.description}
+
+Community Feedback and Critiques:
+${commentsSummary}
+
+Based on the original idea and the community's devil's advocate critiques, suggest ONE specific, actionable improvement or pivot for this project. Keep your suggestion concise (2-3 sentences) and practical. Focus on addressing the main concerns raised while preserving the core value of the original idea. If there is no enough information or critiques, suggest a general improvement.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-lite",
+      contents: prompt,
+    });
+
+    const suggestion = response.text;
+
+    res.json({
+      success: true,
+      suggestion: suggestion.trim(),
+    });
+  } catch (error) {
+    console.error("AI suggestion error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate AI suggestion",
       error: error.message,
     });
   }

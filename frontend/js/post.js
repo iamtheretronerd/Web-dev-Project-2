@@ -48,6 +48,24 @@ window.addEventListener("DOMContentLoaded", async () => {
   await loadPost();
 });
 
+async function loadAISuggestion() {
+  try {
+    const response = await fetch(`/api/posts/${postId}/ai-suggestion`);
+    const data = await response.json();
+
+    if (data.success && data.suggestion) {
+      document.getElementById("aiSuggestion").innerHTML = data.suggestion;
+    } else {
+      document.getElementById("aiSuggestion").innerHTML =
+        '<span class="ai-error">Unable to generate suggestion at this time.</span>';
+    }
+  } catch (error) {
+    console.error("Error loading AI suggestion:", error);
+    document.getElementById("aiSuggestion").innerHTML =
+      '<span class="ai-error">AI Genie is currently unavailable.</span>';
+  }
+}
+
 function setupEventListeners() {
   // Back button
   document.getElementById("backBtn").addEventListener("click", () => {
@@ -79,6 +97,7 @@ async function loadPost() {
     if (data.success && data.post) {
       currentPost = data.post;
       displayPost();
+      loadAISuggestion();
     } else {
       showError("Post not found");
     }

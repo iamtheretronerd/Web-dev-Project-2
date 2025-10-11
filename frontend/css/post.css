@@ -346,3 +346,39 @@ body {
 .reply-toggle-btn:hover {
   text-decoration: underline;
 }
+
+.ai-genie-section {
+  margin: 30px 0;
+  padding: 20px;
+  background: #ff6978;
+  border-radius: 10px;
+  color: white;
+}
+
+.ai-title {
+  font-size: 18px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-suggestion {
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.ai-loading {
+  display: inline-block;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+.ai-error {
+  color: #ffcccc;
+  font-style: italic;
+}
