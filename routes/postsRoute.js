@@ -77,13 +77,13 @@ router.get("/:id/ai-suggestion", async (req, res) => {
 
     const prompt = `You are an innovation consultant analyzing a project idea and its critiques.
 
-Project Title: ${post.title}
-Project Description: ${post.description}
+      Project Title: ${post.title}
+      Project Description: ${post.description}
 
-Community Feedback and Critiques:
-${commentsSummary}
+      Community Feedback and Critiques:
+      ${commentsSummary}
 
-Based on the original idea and the community's devil's advocate critiques, suggest ONE specific, actionable improvement or pivot for this project. Keep your suggestion concise (2-3 sentences) and practical. Focus on addressing the main concerns raised while preserving the core value of the original idea. If there is no enough information or critiques, suggest a general improvement.`;
+      Based on the original idea and the community's devil's advocate critiques, suggest ONE specific, actionable improvement or pivot for this project. Keep your suggestion concise (2-3 sentences) and practical. Focus on addressing the main concerns raised while preserving the core value of the original idea. If there is no enough information or critiques, suggest a general improvement.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash-lite",
