@@ -4,6 +4,9 @@ let currentView = "all"; // 'all' or 'my' or 'top'
 let isSearching = false;
 let hasMorePosts = true;
 
+// Good variable initialization and state management at the top
+// Suggestion: group these into an object like `appState` for cleaner management
+
 // Check if user is logged in
 window.addEventListener("DOMContentLoaded", () => {
   const userStr = sessionStorage.getItem("user");
@@ -13,38 +16,45 @@ window.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  // Nice use of sessionStorage for persistence
+  // Improvement: avoid parsing twice (remove the duplicate JSON.parse below)
   currentUser = JSON.parse(userStr);
   document.getElementById("userNameDisplay").textContent = currentUser.name;
 
   currentUser = JSON.parse(userStr);
   document.getElementById("userNameDisplay").textContent = currentUser.name;
 
+  // Good use of a fallback avatar URL
   document.getElementById("userAvatar").src =
     currentUser.profileImage ||
     `https://api.dicebear.com/9.x/avataaars-neutral/svg?seed=${encodeURIComponent(currentUser.name)}`;
 
   setupEventListeners();
-
   loadPosts();
 });
 
 // Set up all event listeners
 function setupEventListeners() {
+  // Nicely organized event listener setup
   document.getElementById("logoutBtn").addEventListener("click", () => {
     sessionStorage.removeItem("user");
     window.location.href = "/";
   });
 
+  // Smooth navigation to profile
   document.getElementById("userAvatar").addEventListener("click", () => {
     window.location.href = "/user.html";
   });
 
   document.getElementById("userAvatar").style.cursor = "pointer";
 
+  // Create post listener is well-defined
   document
     .getElementById("createPostBtn")
     .addEventListener("click", createPost);
 
+  // Button navigation for top/all/my posts is well-structured
+  // Suggestion: could abstract repetitive logic (toggle active states) into a helper
   document.getElementById("topRatedBtn").addEventListener("click", () => {
     if (currentView !== "top") {
       currentView = "top";
@@ -78,6 +88,7 @@ function setupEventListeners() {
     }
   });
 
+  // Search setup is functional and intuitive
   document.getElementById("searchBtn").addEventListener("click", searchPosts);
   document.getElementById("searchInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") searchPosts();
@@ -87,6 +98,7 @@ function setupEventListeners() {
     .getElementById("clearSearchBtn")
     .addEventListener("click", clearSearch);
 
+  // Pagination handled cleanly via "Load More" button
   document.getElementById("loadMoreBtn").addEventListener("click", () => {
     currentPage++;
     loadPosts(true);
@@ -103,6 +115,7 @@ async function createPost() {
     return;
   }
 
+  // Suggestion: disable button or show loading spinner while creating post
   try {
     const response = await fetch("/api/posts", {
       method: "POST",
@@ -119,6 +132,7 @@ async function createPost() {
     const data = await response.json();
 
     if (data.success) {
+      // Good UX: clears form and reloads posts
       document.getElementById("postTitle").value = "";
       document.getElementById("postDescription").value = "";
 
@@ -141,6 +155,7 @@ async function loadPosts(append = false) {
       return;
     }
 
+    // Nice dynamic route handling for different post views
     if (currentView === "my") {
       url = `/api/posts/my-posts?page=${currentPage}&userEmail=${currentUser.email}`;
     } else if (currentView === "top") {
@@ -152,6 +167,7 @@ async function loadPosts(append = false) {
     const response = await fetch(url);
     const data = await response.json();
 
+    // Suggestion: add error handling for invalid responses (e.g., !data.success)
     if (data.success) {
       displayPosts(data.posts, append);
       hasMorePosts = data.hasMore;
@@ -176,6 +192,7 @@ function displayPosts(posts, append = false) {
     grid.innerHTML = "";
   }
 
+  // Good use of dynamic DOM creation
   posts.forEach((post) => {
     const postCard = document.createElement("div");
     postCard.className = "post-card";
@@ -188,6 +205,7 @@ function displayPosts(posts, append = false) {
 
     const isOwner = post.userEmail === currentUser.email;
 
+    // Suggestion: move template to a render function or use a client-side templating library for maintainability
     postCard.innerHTML = `
       <div class="post-header">
         <div class="post-title">${post.title}</div>
@@ -212,6 +230,7 @@ function displayPosts(posts, append = false) {
       </div>
     `;
 
+    // Navigation to post detail is straightforward
     postCard.addEventListener("click", (e) => {
       if (!e.target.closest(".btn-edit") && !e.target.closest(".btn-delete")) {
         window.location.href = `/post.html?id=${post._id}`;
@@ -222,6 +241,7 @@ function displayPosts(posts, append = false) {
       const editBtn = postCard.querySelector(".btn-edit");
       const deleteBtn = postCard.querySelector(".btn-delete");
 
+      // Nice use of event delegation; good UX for edit/delete
       editBtn?.addEventListener("click", (e) => {
         e.stopPropagation();
         window.location.href = `/editpost.html?id=${post._id}`;
@@ -238,6 +258,7 @@ function displayPosts(posts, append = false) {
 }
 
 async function deletePost(postId) {
+  // Good confirmation dialog before delete
   if (
     !confirm(
       "Are you sure you want to delete this post? This cannot be undone.",
@@ -259,6 +280,7 @@ async function deletePost(postId) {
 
     const data = await response.json();
 
+    // Suggestion: use toast/snackbar instead of alert for smoother UX
     if (data.success) {
       currentPage = 1;
       loadPosts();
@@ -298,6 +320,9 @@ async function searchPosts() {
   } catch (error) {
     console.error("Error searching posts:", error);
     alert("An error occurred while searching");
+  } finally {
+    // Good use of finally to reset state
+    isSearching = false;
   }
 }
 
