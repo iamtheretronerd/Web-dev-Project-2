@@ -6,10 +6,14 @@ let commentForm = null;
 let commentText = null;
 let commentsList = null;
 
+// Clean state variable initialization.
+// Suggestion: group into an object for easier state management (e.g. `appState = { currentUser, currentPost, ... }`)
+
 // Check if user is logged in and get post ID
 window.addEventListener("DOMContentLoaded", async () => {
   const userStr = sessionStorage.getItem("user");
 
+  // Good early redirect for unauthenticated users.
   if (!userStr) {
     window.location.href = "/login.html";
     return;
@@ -17,7 +21,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   currentUser = JSON.parse(userStr);
 
-  // Set user info in header
+  // Nicely displays user info with fallback avatar.
   document.getElementById("userNameDisplay").textContent = currentUser.name;
   document.getElementById("userAvatar").src =
     currentUser.profileImage ||
@@ -26,33 +30,36 @@ window.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
   postId = urlParams.get("id");
 
+  // Good defensive check for missing post ID.
   if (!postId) {
     showError("No post ID provided");
     return;
   }
 
-  // Initialize event listeners
+  // Initialization
   setupEventListeners();
 
-  // Capture comment form elements once the DOM has loaded
+  // Grabs DOM references only after DOMContentLoaded — excellent.
   commentForm = document.getElementById("commentForm");
   commentText = document.getElementById("commentText");
   commentsList = document.getElementById("commentsList");
 
-  // Bind submit handler for new comments
+  // Attaches submit listener safely.
   if (commentForm) {
     commentForm.addEventListener("submit", handleCommentSubmit);
   }
 
-  // Load the post
+  // Loads main post content.
   await loadPost();
 });
 
+// Fetches AI suggestions for a post.
 async function loadAISuggestion() {
   try {
     const response = await fetch(`/api/posts/${postId}/ai-suggestion`);
     const data = await response.json();
 
+    // Graceful fallback when AI suggestion isn’t available.
     if (data.success && data.suggestion) {
       document.getElementById("aiSuggestion").innerHTML = data.suggestion;
     } else {
@@ -66,24 +73,23 @@ async function loadAISuggestion() {
   }
 }
 
+// Initializes event listeners for navigation and voting.
 function setupEventListeners() {
-  // Back button
   document.getElementById("backBtn").addEventListener("click", () => {
     window.location.href = "/dashboard.html";
   });
 
-  // Logout
   document.getElementById("logoutBtn").addEventListener("click", () => {
     sessionStorage.removeItem("user");
     window.location.href = "/";
   });
 
   document.getElementById("upvoteBtn").addEventListener("click", () => {
-    // Trigger upvoting of the current post
     upvoteCurrentPost();
   });
 }
-// Load the post from server
+
+// Loads post and related comments.
 async function loadPost() {
   try {
     const response = await fetch(`/api/posts/single?id=${postId}`);
@@ -94,6 +100,7 @@ async function loadPost() {
 
     const data = await response.json();
 
+    // Good success check and fallback.
     if (data.success && data.post) {
       currentPost = data.post;
       displayPost();
@@ -107,27 +114,25 @@ async function loadPost() {
   }
 }
 
-// Display the post
+// Renders post details.
 function displayPost() {
-  // Hide loading, show content
   document.getElementById("loadingMessage").style.display = "none";
   document.getElementById("postContent").style.display = "block";
 
-  // Set post data
+  // Solid DOM updates and date formatting.
   document.getElementById("postTitle").textContent = currentPost.title;
   document.getElementById("postDescription").textContent =
     currentPost.description;
   document.getElementById("postAuthor").textContent =
     currentPost.userEmail.split("@")[0];
 
-  // Format date
   const postDate = new Date(currentPost.date);
   document.getElementById("postDate").textContent =
     postDate.toLocaleDateString();
 
-  // Set vote count
   document.getElementById("voteCount").textContent = currentPost.votes || 0;
 
+  // Upvote button state toggle works well.
   const upvoteBtn = document.getElementById("upvoteBtn");
   if (currentPost.voters && currentPost.voters.includes(currentUser.email)) {
     upvoteBtn.classList.add("upvoted");
@@ -135,11 +140,11 @@ function displayPost() {
     upvoteBtn.classList.remove("upvoted");
   }
 
-  // Render comments list whenever the post is displayed
+  // Loads comments dynamically.
   displayComments();
 }
 
-// Render the comments associated with the current post
+// Nicely modularized comments rendering.
 function displayComments() {
   if (!commentsList) return;
   commentsList.innerHTML = "";
@@ -154,15 +159,13 @@ function displayComments() {
     commentsList.appendChild(li);
     return;
   }
-  // Build a comment tree from the flat comments array.
   const roots = buildCommentTree(comments);
   roots.forEach((root) => {
-    // Pass depth parameter (0 for root) when rendering comments
     renderComment(root, commentsList, 0);
   });
 }
 
-// Build a tree structure from flat comments array
+// Builds a hierarchical comment tree — efficient approach.
 function buildCommentTree(comments) {
   const map = new Map();
   const roots = [];
@@ -184,16 +187,16 @@ function buildCommentTree(comments) {
   return roots;
 }
 
-// Render a single comment and its children recursively
+// Renders a single comment recursively.
+// Great modularization and recursion logic.
 function renderComment(comment, container, depth = 0) {
   const li = document.createElement("li");
   li.className = "comment-item";
 
-  // Create a row container to hold upvote button and comment content
   const rowDiv = document.createElement("div");
   rowDiv.className = "comment-row";
 
-  // Upvote button and vote count
+  // Upvote logic — good UX, but you might debounce rapid clicks to prevent spam.
   const upvoteBtn = document.createElement("button");
   upvoteBtn.className = "comment-upvote-btn";
   upvoteBtn.innerHTML = `<span class="comment-vote-icon">▲</span> <span class="comment-vote-count">${comment.votes || 0}</span>`;
@@ -207,17 +210,14 @@ function renderComment(comment, container, depth = 0) {
     upvoteComment(comment.commentId);
   });
 
-  // Comment content container
+  // Clean comment meta and content handling.
   const contentDiv = document.createElement("div");
   contentDiv.className = "comment-content";
-
-  // Comment text
   const textDiv = document.createElement("div");
   textDiv.className = "comment-text";
   textDiv.textContent = comment.text;
   contentDiv.appendChild(textDiv);
 
-  // Comment meta (author and date)
   const metaDiv = document.createElement("div");
   metaDiv.className = "comment-meta";
   const author = comment.userEmail
@@ -227,19 +227,20 @@ function renderComment(comment, container, depth = 0) {
   metaDiv.textContent = `${author} • ${date.toLocaleDateString()}`;
   contentDiv.appendChild(metaDiv);
 
-  // Reply button
+  // Reply UI and handler work well.
   const replyBtn = document.createElement("button");
   replyBtn.className = "comment-reply-btn";
   replyBtn.textContent = "Reply";
   contentDiv.appendChild(replyBtn);
 
-  // Reply form (hidden by default)
   const replySection = document.createElement("div");
   replySection.className = "reply-section";
   replySection.style.display = "none";
+
   const replyTextarea = document.createElement("textarea");
   replyTextarea.className = "reply-textarea";
   replyTextarea.placeholder = "Write a reply...";
+
   const replySubmit = document.createElement("button");
   replySubmit.className = "btn-reply";
   replySubmit.textContent = "Post Reply";
@@ -278,17 +279,14 @@ function renderComment(comment, container, depth = 0) {
 
   contentDiv.appendChild(replySection);
 
-  // Assemble row
   rowDiv.appendChild(upvoteBtn);
   rowDiv.appendChild(contentDiv);
   li.appendChild(rowDiv);
 
-  // Render children, if any
+  // Collapsible nested replies are well-implemented.
   if (comment.children && comment.children.length > 0) {
-    // Create a container for replies
     const childList = document.createElement("ul");
     childList.className = "replies-list";
-    // If depth >= 3, collapse the thread by default and show a toggle
     let collapsed = depth >= 3;
     if (collapsed) {
       childList.style.display = "none";
@@ -296,7 +294,6 @@ function renderComment(comment, container, depth = 0) {
     comment.children.forEach((child) => {
       renderComment(child, childList, depth + 1);
     });
-    // Add toggle button to show/hide replies if deep chain
     if (depth >= 1) {
       const toggleBtn = document.createElement("button");
       toggleBtn.className = "reply-toggle-btn";
@@ -318,7 +315,7 @@ function renderComment(comment, container, depth = 0) {
   container.appendChild(li);
 }
 
-// Utility to convert various ID formats to string
+// ID normalization helper — good consistency with MongoDB ObjectIds.
 function idToString(id) {
   if (!id) return "";
   if (typeof id === "string") return id;
@@ -326,7 +323,7 @@ function idToString(id) {
   return id.toString();
 }
 
-// Handle new comment submission
+// Handles new comment submission — clear logic and feedback.
 async function handleCommentSubmit(event) {
   event.preventDefault();
   if (!commentText) return;
@@ -340,7 +337,6 @@ async function handleCommentSubmit(event) {
     });
     const data = await response.json();
     if (data.success) {
-      // Clear input and reload post data to show the new comment
       commentText.value = "";
       await loadPost();
     } else {
@@ -353,7 +349,7 @@ async function handleCommentSubmit(event) {
   }
 }
 
-// Upvote the current post
+// Toggle upvote on main post.
 async function upvoteCurrentPost() {
   try {
     const response = await fetch(`/api/posts/${postId}/upvote`, {
@@ -363,10 +359,8 @@ async function upvoteCurrentPost() {
     });
     const data = await response.json();
     if (data.success) {
-      // Reload the post to update vote count and button state
       await loadPost();
     } else {
-      console.error("Failed to toggle post vote:", data.message || data.error);
       alert(data.message || "Failed to toggle post vote");
     }
   } catch (error) {
@@ -375,7 +369,7 @@ async function upvoteCurrentPost() {
   }
 }
 
-// Upvote a specific comment by its commentId
+// Toggles upvote for comment — consistent design with post voting.
 async function upvoteComment(commentId) {
   try {
     const response = await fetch(
@@ -388,13 +382,8 @@ async function upvoteComment(commentId) {
     );
     const data = await response.json();
     if (data.success) {
-      // Refresh the post to update comment vote counts and button states
       await loadPost();
     } else {
-      console.error(
-        "Failed to toggle comment vote:",
-        data.message || data.error,
-      );
       alert(data.message || "Failed to toggle comment vote");
     }
   } catch (error) {
@@ -403,7 +392,7 @@ async function upvoteComment(commentId) {
   }
 }
 
-// Show error message
+// Centralized error display utility — good practice.
 function showError(message) {
   document.getElementById("loadingMessage").style.display = "none";
   document.getElementById("postContent").style.display = "none";

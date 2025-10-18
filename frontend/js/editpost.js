@@ -26,6 +26,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   await loadPost();
 });
+// Good use of async initialization and session validation.
+// Suggestion: You could wrap this logic in a try/catch block to catch initialization errors more gracefully.
+
 
 function setupEventListeners() {
   document.getElementById("backBtn").addEventListener("click", () => {
@@ -40,6 +43,9 @@ function setupEventListeners() {
     .getElementById("editPostForm")
     .addEventListener("submit", handleFormSubmit);
 }
+// Clear separation of event bindings.
+// Suggestion: Cache DOM elements once at the top to avoid repeated lookups (for performance and clarity).
+
 
 // Load post data
 async function loadPost() {
@@ -70,6 +76,10 @@ async function loadPost() {
     showError("Failed to load post. Please try again.");
   }
 }
+// Robust error handling and ownership validation.
+// Suggestion: Consider showing a loading spinner until data is fetched for better UX.
+// Improvement: Add a small delay or animation on error display to make UI transitions smoother.
+
 
 // Display post in form
 function displayPost() {
@@ -79,8 +89,10 @@ function displayPost() {
   document.getElementById("postTitle").value = currentPost.title;
   document.getElementById("postDescription").value = currentPost.description;
 }
+// Straightforward and readable DOM updates.
+// Suggestion: Consider trimming text or handling potential null values (e.g., missing title or description).
 
-// Handle form submission
+
 async function handleFormSubmit(e) {
   e.preventDefault();
 
@@ -118,11 +130,16 @@ async function handleFormSubmit(e) {
     alert("An error occurred while updating the post. Please try again.");
   }
 }
+// Clean PUT request logic with success and failure handling.
+// Suggestion: Replace alert() with a non-blocking UI element (e.g., toast notification) for smoother UX.
+// Improvement: Disable the submit button during API call to prevent duplicate submissions.
 
-// Show error message
+
 function showError(message) {
   document.getElementById("loadingMessage").style.display = "none";
   document.getElementById("editPostForm").style.display = "none";
   document.getElementById("errorMessage").style.display = "block";
   document.getElementById("errorMessage").textContent = message;
 }
+// Consistent error rendering function.
+// Suggestion: Include a “Back to Dashboard” or “Retry” button for better recovery from errors.

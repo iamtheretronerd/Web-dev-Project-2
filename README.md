@@ -1,3 +1,6 @@
+## Code Review
+Hi Hemang and Adrian! We loved the idea behind the 9th seat! I think the space you are creating with this web app is very unique and can help a lot of creators get great feedback on their ideas, as well as provide feedback or gain inspiration from others! As for the UI design, I think the overall execution was very sleek and easy to use. I especially liked the face icons you added for when a user makes a new profile! Very cute and a nice touch. As for the code, overall it looks great, but there were a fine minor changes/suggestions that were made in some of the files. Congrats on finishing project 2! You guys did a great job! 
+
 ## 📌 Author & Class Info
 
 - **Author:** Hemang Murugan & Adrian Halgas

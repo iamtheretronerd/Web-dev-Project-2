@@ -17,8 +17,13 @@ import {
 
 const router = express.Router();
 
+// Good modular import structure – makes routes clean and maintainable
+// Consider lazy importing or splitting routes if file grows further
+
 import { GoogleGenAI } from "@google/genai";
 
+// Using GoogleGenAI for AI suggestions is creative and well-integrated
+// Suggestion: add fallback or rate-limit handling for API usage
 const ai = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
 // Create a new post - POST /api/posts
@@ -26,6 +31,7 @@ router.post("/", async (req, res) => {
   try {
     const { title, description, userEmail } = req.body;
 
+    // Good input validation
     if (!title || !description || !userEmail) {
       return res.status(400).json({
         success: false,
@@ -33,6 +39,7 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // Suggestion: sanitize or trim user input to avoid injection or formatting issues
     const result = await createPost({
       title,
       description,
@@ -59,7 +66,7 @@ router.get("/:id/ai-suggestion", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Get the post with comments
+    // Retrieves post and comments
     const post = await getPostById(id);
 
     if (!post) {
@@ -69,7 +76,8 @@ router.get("/:id/ai-suggestion", async (req, res) => {
       });
     }
 
-    // Prepare context for AI
+    // Good summarization for AI context
+    // Suggestion: consider limiting comment length or count for large threads
     const commentsSummary =
       post.comments && post.comments.length > 0
         ? post.comments.map((c) => c.text).join("\n")
@@ -85,6 +93,7 @@ router.get("/:id/ai-suggestion", async (req, res) => {
 
       Based on the original idea and the community's devil's advocate critiques, suggest ONE specific, actionable improvement or pivot for this project. Keep your suggestion concise (2-3 sentences) and practical. Focus on addressing the main concerns raised while preserving the core value of the original idea. If there is no enough information or critiques, suggest a general improvement.`;
 
+    // Suggestion: add error handling for invalid API key or network failure
     const response = await ai.models.generateContent({
       model: "gemini-2.0-flash-lite",
       contents: prompt,
@@ -112,6 +121,7 @@ router.get("/", async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const result = await getPostsPaginated(page);
 
+    // Efficient response merging via spread operator
     res.json({
       success: true,
       ...result,
@@ -186,6 +196,7 @@ router.get("/search", async (req, res) => {
       });
     }
 
+    // Suggestion: implement text index or fuzzy matching for better search performance
     const posts = await searchPosts(q);
 
     res.json({
@@ -243,22 +254,23 @@ router.post("/:id/upvote", async (req, res) => {
   try {
     const { id } = req.params;
     const { userEmail } = req.body;
-    if (!id) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Post ID is required" });
+
+    // Good use of checks before DB call
+    if (!id || !userEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Post ID and user email are required",
+      });
     }
-    if (!userEmail) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User email is required" });
-    }
+
     const result = await togglePostVote(id, userEmail);
     if (!result) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Post not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
     }
+
     res.json({
       success: true,
       upvoted: result.upvoted,
@@ -281,21 +293,21 @@ router.post("/:postId/comments", async (req, res) => {
   try {
     const { postId } = req.params;
     const { userEmail, text } = req.body;
-    if (!postId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Post ID is required" });
+
+    if (!postId || !userEmail || !text) {
+      return res.status(400).json({
+        success: false,
+        message: "Post ID, user email, and text are required",
+      });
     }
-    if (!userEmail || !text) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User email and text are required" });
-    }
+
+    // Suggestion: sanitize text input before storing
     const result = await addCommentToPost(postId, { userEmail, text });
     if (!result || result.matchedCount === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Post not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
     }
     res.json({ success: true, message: "Comment added successfully" });
   } catch (error) {
@@ -313,23 +325,22 @@ router.post("/:postId/comments/:commentId/upvote", async (req, res) => {
   try {
     const { postId, commentId } = req.params;
     const { userEmail } = req.body;
-    if (!postId || !commentId) {
+
+    if (!postId || !commentId || !userEmail) {
       return res.status(400).json({
         success: false,
-        message: "Post ID and comment ID are required",
+        message: "Post ID, comment ID, and user email are required",
       });
     }
-    if (!userEmail) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User email is required" });
-    }
+
     const result = await toggleCommentVote(postId, commentId, userEmail);
     if (!result) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Comment not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Comment not found",
+      });
     }
+
     res.json({
       success: true,
       upvoted: result.upvoted,
@@ -352,25 +363,23 @@ router.post("/:postId/comments/:commentId/replies", async (req, res) => {
   try {
     const { postId, commentId } = req.params;
     const { userEmail, text } = req.body;
-    if (!postId || !commentId) {
+
+    if (!postId || !commentId || !userEmail || !text) {
       return res.status(400).json({
         success: false,
-        message: "Post ID and comment ID are required",
+        message: "Post ID, comment ID, user email, and text are required",
       });
     }
-    if (!userEmail || !text) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User email and text are required" });
-    }
+
     const result = await addReplyToComment(postId, commentId, {
       userEmail,
       text,
     });
     if (!result || result.matchedCount === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Post or comment not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Post or comment not found",
+      });
     }
     return res.json({ success: true, message: "Reply added successfully" });
   } catch (error) {

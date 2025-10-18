@@ -3,6 +3,7 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* Good universal reset; ensures consistent box sizing. */
 
 body {
   font-family: Arial, sans-serif;
@@ -10,11 +11,14 @@ body {
   min-height: 100vh;
   padding: 20px;
 }
+/* Simple, readable, and mobile-friendly base styling. */
+/* Suggestion: consider using a system font stack (e.g. `font-family: system-ui, -apple-system, ...`) for better OS integration. */
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
 }
+/* Clean layout container; a max width keeps the design centered. */
 
 .header {
   display: flex;
@@ -26,22 +30,27 @@ body {
   margin-bottom: 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+/* Excellent header styling with subtle depth; rounded corners feel modern. */
 
 h1 {
   color: #333;
   font-size: 28px;
 }
+/* Clear and readable. */
+/* Suggestion: consider responsive font-sizing using clamp() for mobile scaling. */
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 15px;
 }
+/* Consistent spacing; nice use of flexbox. */
 
 #userNameDisplay {
   color: #666;
   font-size: 16px;
 }
+/* Neutral text color complements the design. */
 
 .btn-logout {
   background-color: #dc3545;
@@ -52,10 +61,11 @@ h1 {
   border-radius: 5px;
   cursor: pointer;
 }
-
 .btn-logout:hover {
   background-color: #c82333;
 }
+/* Clear button hierarchy. */
+/* Suggestion: add a slight transition for smoother hover effect. */
 
 .search-section {
   background-color: white;
@@ -66,6 +76,7 @@ h1 {
   gap: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+/* Strong consistent visual card style; same pattern reused throughout. */
 
 #searchInput {
   flex: 1;
@@ -74,6 +85,7 @@ h1 {
   border-radius: 5px;
   font-size: 16px;
 }
+/* Simple input styling; border and padding are balanced. */
 
 .btn-search,
 .btn-clear {
@@ -83,24 +95,24 @@ h1 {
   cursor: pointer;
   font-size: 16px;
 }
+/* Good shared button base class – keeps style consistent. */
 
 .btn-search {
   background-color: #007bff;
   color: white;
 }
-
 .btn-search:hover {
   background-color: #0056b3;
 }
-
 .btn-clear {
   background-color: #6c757d;
   color: white;
 }
-
 .btn-clear:hover {
   background-color: #5a6268;
 }
+/* Great use of color contrast and accessible sizes. */
+/* Suggestion: consider defining CSS variables for color palette reuse. */
 
 .create-post-section {
   background-color: white;
@@ -109,16 +121,9 @@ h1 {
   margin-bottom: 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+/* Reusable section card – consistent design language. */
 
-#postTitle {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-  margin-bottom: 10px;
-}
-
+#postTitle,
 #postDescription {
   width: 100%;
   padding: 10px;
@@ -126,8 +131,11 @@ h1 {
   border-radius: 5px;
   font-size: 16px;
   margin-bottom: 10px;
+}
+#postDescription {
   resize: vertical;
 }
+/* Clean form inputs; resize: vertical is user-friendly. */
 
 .btn-create {
   background-color: #28a745;
@@ -138,10 +146,10 @@ h1 {
   border-radius: 5px;
   cursor: pointer;
 }
-
 .btn-create:hover {
   background-color: #218838;
 }
+/* Clear CTA design with nice hover feedback. */
 
 .toggle-section {
   background-color: white;
@@ -152,6 +160,7 @@ h1 {
   gap: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+/* Maintains consistent card pattern for toggles too – good design consistency. */
 
 .toggle-btn {
   padding: 10px 20px;
@@ -162,15 +171,14 @@ h1 {
   cursor: pointer;
   font-size: 16px;
 }
-
 .toggle-btn.active {
   background-color: #007bff;
   color: white;
 }
-
 .toggle-btn:hover:not(.active) {
   background-color: #f0f0f0;
 }
+/* Excellent active state handling with :not selector. */
 
 .posts-grid {
   display: grid;
@@ -178,6 +186,7 @@ h1 {
   gap: 20px;
   margin-bottom: 20px;
 }
+/* Good use of CSS Grid for responsiveness; scales gracefully. */
 
 .post-card {
   background-color: white;
@@ -185,15 +194,13 @@ h1 {
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .post-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
+/* Nice hover elevation effect; lightweight and smooth. */
 
 .post-title {
   font-size: 18px;
@@ -201,7 +208,6 @@ h1 {
   color: #333;
   margin-bottom: 10px;
 }
-
 .post-meta {
   color: #666;
   font-size: 14px;
@@ -209,7 +215,6 @@ h1 {
   justify-content: space-between;
   align-items: center;
 }
-
 .post-stats {
   display: flex;
   gap: 15px;
@@ -217,20 +222,20 @@ h1 {
   color: #007bff;
   font-size: 14px;
 }
-
 .post-stats span {
   display: flex;
   align-items: center;
   gap: 5px;
 }
+/* Clean and legible post info; consistent spacing across elements. */
 
 .post-author {
   font-style: italic;
 }
-
 .post-date {
   font-size: 12px;
 }
+/* Good typographic hierarchy. */
 
 .no-posts {
   text-align: center;
@@ -241,6 +246,7 @@ h1 {
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+/* Great user feedback for empty state – clear and consistent visual style. */
 
 .btn-load-more {
   display: block;
@@ -253,10 +259,10 @@ h1 {
   font-size: 16px;
   cursor: pointer;
 }
-
 .btn-load-more:hover {
   background-color: #0056b3;
 }
+/* Properly designed pagination button; good touch target size. */
 
 .user-avatar {
   width: 40px;
@@ -265,12 +271,14 @@ h1 {
   object-fit: cover;
   border: 2px solid #ddd;
 }
+/* Compact, clean avatar styling. */
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 15px;
 }
+/* Duplicate definition; you can merge this with the one above to avoid redundancy. */
 
 .post-header {
   display: flex;
@@ -278,11 +286,11 @@ h1 {
   align-items: center;
   margin-bottom: 10px;
 }
-
 .post-actions {
   display: flex;
   gap: 5px;
 }
+/* Clean flex handling for post action buttons. */
 
 .btn-edit,
 .btn-delete {
@@ -294,8 +302,9 @@ h1 {
   opacity: 0.7;
   transition: opacity 0.2s;
 }
-
 .btn-edit:hover,
 .btn-delete:hover {
   opacity: 1;
 }
+/* Good minimal action icon styling; consistent hover behavior. */
+/* Suggestion: add distinct colors for edit/delete (e.g. green/red) for faster visual recognition. */
