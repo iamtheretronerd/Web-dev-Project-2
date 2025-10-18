@@ -3,7 +3,8 @@ import MyMongoDB from "../db/myMongoDB.js";
 
 const router = express.Router();
 
-// Initialize MongoDB for users collection
+// Good modular design - separates auth logic from main app
+// Consider moving DB initialization to a shared module if used by multiple routes
 const usersDB = MyMongoDB({
   dbName: "9thSeat",
   collectionName: "users",
@@ -14,7 +15,8 @@ router.post("/signup", async (req, res) => {
   try {
     const { name, email, password, profileImage } = req.body;
 
-    // Check if user already exists
+    // Good validation for existing users
+    // Suggestion: Add stronger validation (e.g., required fields, email format)
     const existingUser = await usersDB.findOne({ email });
 
     if (existingUser) {
@@ -24,7 +26,7 @@ router.post("/signup", async (req, res) => {
       });
     }
 
-    // Create new user
+    // Creates new user - solid, but password should be hashed before storing
     const newUser = {
       name,
       email,
@@ -41,6 +43,7 @@ router.post("/signup", async (req, res) => {
       userId: result.insertedId,
     });
   } catch (error) {
+    // Good structured error handling
     console.error("Signup error:", error);
     res.status(500).json({
       success: false,
@@ -55,7 +58,8 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
+    // Finds user by email - good start
+    // Suggestion: Validate input and consider case-insensitive email matching
     const user = await usersDB.findOne({ email });
 
     if (!user) {
@@ -65,6 +69,7 @@ router.post("/login", async (req, res) => {
       });
     }
 
+    // Password check is direct comparison; should be hashed and compared securely
     if (user.password !== password) {
       return res.status(401).json({
         success: false,
@@ -72,7 +77,7 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Remove password from response
+    // Good practice: removing sensitive info from response
     const userWithoutPassword = { ...user };
     delete userWithoutPassword.password;
 
@@ -96,7 +101,7 @@ router.put("/update", async (req, res) => {
   try {
     const { name, email, password, currentEmail, profileImage } = req.body;
 
-    // Find user by current email
+    // Good use of currentEmail for identifying user
     const user = await usersDB.findOne({ email: currentEmail });
 
     if (!user) {
@@ -106,7 +111,7 @@ router.put("/update", async (req, res) => {
       });
     }
 
-    // Check if new email is already taken
+    // Smart check for duplicate emails
     if (email !== currentEmail) {
       const emailExists = await usersDB.findOne({ email });
       if (emailExists) {
@@ -117,7 +122,8 @@ router.put("/update", async (req, res) => {
       }
     }
 
-    // Prepare update object
+    // Nice preparation of update data
+    // Suggestion: validate field types and consider hashing password if updated
     const updateData = {
       name,
       email,
@@ -129,12 +135,12 @@ router.put("/update", async (req, res) => {
       updateData.password = password;
     }
 
-    // Update user
     const result = await usersDB.updateDocument(
       { email: currentEmail },
       updateData,
     );
 
+    // Good user feedback when no modifications occur
     if (result.modifiedCount === 0) {
       return res.status(400).json({
         success: false,
