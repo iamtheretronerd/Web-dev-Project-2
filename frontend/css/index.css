@@ -3,6 +3,7 @@
   padding: 0;
   box-sizing: border-box;
 }
+/* Good universal reset — consistent rendering across browsers. */
 
 html,
 body {
@@ -13,15 +14,21 @@ body {
   background: #fafafa;
   color: #111;
 }
+/* Simple, readable typography and color scheme. */
+/* Suggestion: add `line-height: 1.5;` to improve paragraph readability. */
+/* Consider a system font stack for faster rendering. */
 
 .split {
   display: flex;
   min-height: 100vh;
 }
+/* Clean two-panel split layout. */
+/* Suggestion: consider using `height: 100dvh` for better mobile viewport behavior on iOS/Android. */
 
 .panel {
   flex: 1 1 50%;
 }
+/* Efficient use of flex shorthand for equal panel sizing. */
 
 .left {
   position: relative;
@@ -34,6 +41,8 @@ body {
   object-fit: cover;
   display: block;
 }
+/* Excellent responsive image handling with object-fit. */
+/* Suggestion: Add a subtle overlay or gradient if the image needs contrast with text on top later. */
 
 .right {
   display: flex;
@@ -42,10 +51,12 @@ body {
   padding: 48px clamp(24px, 4vw, 56px);
   background: #fff;
 }
+/* Strong use of clamp() for adaptive padding; ensures it scales smoothly on different screens. */
 
 .content {
   max-width: 520px;
 }
+/* Keeps text readable — good measure limit. */
 
 h1 {
   font-size: clamp(36px, 6vw, 56px);
@@ -53,12 +64,15 @@ h1 {
   letter-spacing: -0.02em;
   margin-bottom: 12px;
 }
+/* Excellent fluid typography. */
+/* Suggestion: add responsive top margin or adjust for mobile spacing at small breakpoints. */
 
 .tagline {
   font-size: clamp(16px, 2.2vw, 20px);
   color: #444;
   margin-bottom: 28px;
 }
+/* Subtle contrast text — works well under a large header. */
 
 .btn {
   appearance: none;
@@ -74,6 +88,8 @@ h1 {
 .btn:active {
   transform: translateY(1px);
 }
+/* Nice tactile feedback animation; quick but not intrusive. */
+/* Suggestion: add :focus-visible style for keyboard accessibility. */
 
 .btn-primary {
   width: 100%;
@@ -84,6 +100,9 @@ h1 {
 .btn-primary:hover {
   opacity: 0.9;
 }
+/* Clean minimalist button styling. */
+/* Could add a `transition: background-color` for smoother hover. */
+/* Consider using CSS variables (e.g., `--primary-color`) for easier theming. */
 
 .foot {
   text-align: right;
@@ -93,6 +112,8 @@ h1 {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+/* Underline offset is a nice modern detail for readability. */
+/* Suggestion: add hover/focus state (e.g., underline-color change) for interactivity. */
 
 @media (max-width: 840px) {
   .split {
@@ -109,3 +130,5 @@ h1 {
     margin-top: 24px;
   }
 }
+/* Excellent responsive design — simple but effective breakpoint. */
+/* Suggestion: consider adding `padding` adjustments or smaller `h1` sizes for screens <480px. */
