@@ -10,6 +10,9 @@ window.addEventListener("DOMContentLoaded", () => {
     "https://api.dicebear.com/9.x/thumbs/svg?seed=default";
   document.getElementById("avatarImg").src = defaultAvatarUrl;
 });
+// Good session check and redirect logic for authenticated users.
+// Suggestion: Wrap this in a try/catch or add a guard if `avatarImg` is missing from DOM to avoid runtime errors.
+
 
 // Generate avatar when name changes
 document.getElementById("name").addEventListener("input", (e) => {
@@ -24,6 +27,10 @@ document.getElementById("name").addEventListener("input", (e) => {
     document.getElementById("avatarImg").src = defaultAvatarUrl;
   }
 });
+// Clean and responsive avatar generation based on user input.
+// Suggestion: Debounce the input listener to reduce API requests for fast typing.
+// Improvement: Cache the default avatar URL in a constant to avoid duplication.
+
 
 // Handle signup form submission
 document.getElementById("signupForm").addEventListener("submit", async (e) => {
@@ -70,3 +77,10 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
     alert("An error occurred. Please try again.");
   }
 });
+// Clean and readable async form submission flow with feedback handling.
+// Strength: Properly structured validation and API communication.
+// Suggestions:
+// - Replace alert() with inline or toast-style UI feedback for better UX.
+// - Validate email format before sending the request.
+// - Disable the submit button while waiting for the response to prevent duplicate submissions.
+// - For production readiness, passwords should be hashed before sending to backend (or handled securely on the server).
