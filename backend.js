@@ -35,8 +35,11 @@ app.use(/^\/api\/.*$/, (req, res) => {
   });
 });
 
-// Error handling middleware
-app.use((err, res) => {
+// Error handling middleware (must include 4 args for Express to use it)
+app.use((err, req, res, next) => {
+  if (res.headersSent) {
+    return next(err);
+  }
   console.error("Error:", err.stack);
   res.status(err.status || 500).json({
     error: err.message || "Internal Server Error",
