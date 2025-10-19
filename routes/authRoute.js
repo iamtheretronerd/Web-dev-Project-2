@@ -1,4 +1,5 @@
 import express from "express";
+import bcrypt from "bcryptjs";
 import MyMongoDB from "../db/myMongoDB.js";
 
 const router = express.Router();
@@ -25,10 +26,12 @@ router.post("/signup", async (req, res) => {
     }
 
     // Create new user
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = {
       name,
       email,
-      password,
+      password: hashedPassword,
       profileImage,
       createdAt: new Date(),
     };
@@ -65,7 +68,9 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    if (user.password !== password) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -126,7 +131,7 @@ router.put("/update", async (req, res) => {
     };
 
     if (password) {
-      updateData.password = password;
+      updateData.password = await bcrypt.hash(password, 10);
     }
 
     // Update user
