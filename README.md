@@ -7,6 +7,10 @@
 
 ---
 
+
+
+TODO: Missing the screenshot
+
 # 🎯 Project Objective
 
 **An Open Idea-Sharing Platform for Creators and Critics**
